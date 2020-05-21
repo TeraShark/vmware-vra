@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="27651fb7-7eb7-46cf-9891-a1073aca4572" editor-version="2.0" version="0.0.2" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>apply-nsx-tags</display-name>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="inputProperties" type="Properties"/>
+    </input>
+    <output/>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="460.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>tag vm</display-name>
+        <script encoded="false">var tags = inputProperties.get("tags");&#13;
+//Tag logging:&#13;
+for (var t in tags){&#13;
+    System.log(t);&#13;
+}&#13;
+&#13;
+/*&#13;
+Fetch specific tags you are looking for to assign NSX Security Tags.&#13;
+In this sample, I've set up a vRA Tag called "nsx-security-tags" and in &#13;
+the value for this tag I intend to use pipe-delimited tags for NSX which &#13;
+I define straight in my blueprint.&#13;
+Consider the following YAML from a simple blueprint:&#13;
+dev_svr:&#13;
+    type: Cloud.vSphere.Machine&#13;
+    properties:&#13;
+      image: centos&#13;
+      cpuCount: 1&#13;
+      totalMemoryMB: '${input.vm_memory}'&#13;
+      networks:&#13;
+        - network: '${resource.NSX_Default.id}'&#13;
+      attachedDisks:&#13;
+        - source: ''&#13;
+      customProperty1: foo&#13;
+      customProperty2: bar&#13;
+      tags:&#13;
+        - key: nsx-security-tags&#13;
+          value: applications|mid-tier|no-access&#13;
+&#13;
+*** Note the customProperties as well as tags&#13;
+In this case, we'll simply use tags.&#13;
+*/&#13;
+&#13;
+&#13;
+var vmUUID = inputProperties["externalIds"][0];&#13;
+&#13;
+var sec_string = tags.get("nsx-security-tags");&#13;
+//applications|mid-tier|no-access&#13;
+if (sec_string){&#13;
+    //this returns an array:&#13;
+    var sectags = sec_string.split('|');&#13;
+    //iterate and build up a payload considering the following sample:&#13;
+    /*&#13;
+    {&#13;
+        "external_id": "50250362-8683-2850-df49-884b2a4dfa51",&#13;
+        "tags": [&#13;
+            {"scope": "", "tag": "app"},&#13;
+            {"scope": "", "tag": "managed_vm"},&#13;
+            {"scope": "", "tag": "dmz_vm"}&#13;
+        ]&#13;
+    }&#13;
+    */&#13;
+    var payload = {};&#13;
+    payload.external_id = vmUUID;&#13;
+    payload.tags = [];&#13;
+&#13;
+    var newtag = null;&#13;
+    //Iterate and build the data object:&#13;
+    for (var t in sectags){&#13;
+        newtag = {};&#13;
+        newtag.scope = "";&#13;
+        newtag.tag = t;&#13;
+        payload.tags.push(newTag);&#13;
+    }&#13;
+&#13;
+    //NOTE: the update_tags action on the API will overwrite any existing tags.&#13;
+    //Be sure to first pull any existing tags and add them back into the object when posting!&#13;
+    callNSXAPI_POST("/api/v1/fabric/virtual-machines?action=update_tags", JSON.stringify(payload));&#13;
+}&#13;
+&#13;
+&#13;
+&#13;
+function callNSXRestAPI_GET(uri){&#13;
+    //Placeholder for REST Call&#13;
+    //This would be replaced by CoE Library for Rest Calls&#13;
+    //GET https://&lt;nsx manager fqdn&gt;/api/v1/fabric/virtual-machines?display_name={vm_name}&amp;included_fields=tags&amp;included_fields=external_id&#13;
+}&#13;
+&#13;
+function callNSXAPI_POST(uri, data){&#13;
+    //Placeholder for REST Call&#13;
+    //This would be replaced by CoE Library for Rest Calls&#13;
+    //POST https://&lt;nsx manager fqdn&gt;/api/v1/fabric/virtual-machines?action=update_tags&#13;
+    /*&#13;
+    Sample payload for a POST&#13;
+    {&#13;
+        "external_id": "50250362-8683-2850-df49-884b2a4dfa51",&#13;
+        "tags": [&#13;
+            {"scope": "", "tag": "app"},&#13;
+            {"scope": "", "tag": "managed_vm"},&#13;
+            {"scope": "", "tag": "dmz_vm"}&#13;
+        ]&#13;
+    }&#13;
+    */&#13;
+}&#13;
+</script>
+        <in-binding>
+            <bind name="inputProperties" type="Properties" export-name="inputProperties"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="220.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>
