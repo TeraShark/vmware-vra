@@ -1,4 +1,4 @@
-name: CentOS.Application.Stack
+name: CentOS-Application-Stack
 version: 1
 formatVersion: 1
 inputs:
