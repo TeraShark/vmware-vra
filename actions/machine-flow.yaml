@@ -1,0 +1,13 @@
+---
+version: 1
+flow:
+  flow_start:
+    next: action1
+  action1:
+    action: rest-test
+    next: action2
+  action2:
+    action: test-github
+    next: flow_end
+onError:
+  action: test
