@@ -1,0 +1,7 @@
+---
+exportVersion: "1"
+exportId: "8a7480d9721eb7ac017238db99c20006"
+name: "machine-flow"
+timeoutSeconds: 600
+actionType: "FLOW"
+memoryInMB: 300
