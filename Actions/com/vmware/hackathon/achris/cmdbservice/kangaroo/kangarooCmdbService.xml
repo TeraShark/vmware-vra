@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="kangarooCmdbService" result-type="Any" api-version="6.0.0" id="d49c4779-29d4-3b0c-a8ce-c92f64ded2e2" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.cmdbservice.kangaroo">
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+var cmdbServiceBase = Class.load("com.vmware.hackathon.achris.cmdbservice", 
+        "cmdbServiceBase");
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+
+return Class.define(function kangarooCmdbService(){
+
+    cmdbServiceBase.call(this);
+    this.restClient = new RestClient(null);
+    this.initialize = function(endpointUrl, endpointName, username, password){
+        this.restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, username, password); 
+        this.restClient = new RestClient(host);
+        return true;
+    };
+
+    this.add = function(name, size){
+        var urlTemplate = "/api/record/"
+        var httpData = this.restClient.put(urlTemplate, [], { "name" : name, "size" : size });
+        if (httpData.statusCode != 200){
+            throw "Error adding CMDB entry. Received Status Code: " + httpData.statusCode;
+        }
+        return true;
+    };
+    
+    this.delete = function(id){
+        var urlTemplate = "/api/record/{id}"
+        var httpData = this.restClient.delete(urlTemplate, [id], null);
+        if (httpData.statusCode != 200){
+            throw "Error deleting CMDB record. Received Status Code: " + httpData.statusCode;
+        }
+        return true;
+    };
+}, null, cmdbServiceBase);
+]]></script>
+</dunes-script-module>

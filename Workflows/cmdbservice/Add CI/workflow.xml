@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item2" object-name="workflow:name=generic" id="8c9902de-206e-41a4-b46b-1da89a7359f5" editor-version="2.0" version="0.0.2" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>Add CI</display-name>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="CMDBServiceName" type="string">
+            <description>Eg "kangaroo", "wombat" or "platypus"</description>
+        </param>
+        <param name="CMDBEntryName" type="string"/>
+        <param name="CMDBEntrySize" type="number"/>
+    </input>
+    <output>
+        <param name="actionResult" type="Any"/>
+    </output>
+    <attrib name="endpointURL" type="string">
+        <value encoded="n"/>
+        <description>Do not bind</description>
+    </attrib>
+    <attrib name="password" type="SecureString">
+        <value encoded="n"/>
+        <description>Do not bind</description>
+    </attrib>
+    <attrib name="userName" type="string">
+        <value encoded="n"/>
+        <description>Do not bind</description>
+    </attrib>
+    <attrib name="KanagrooUserName" type="string">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="PlatypusUserName" type="string">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="WombatUserName" type="string">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="KangarooURL" type="string">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="WombatURL" type="string">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="PlaytpusURL" type="string">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="KangarooPwd" type="SecureString">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="WombatPwd" type="SecureString">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <attrib name="PlatypusPwd" type="SecureString">
+        <value encoded="n"/>
+        <description>Bind this to configuration</description>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="480.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" script-module="com.vmware.hackathon.achris.cmdbservice/cmdbServiceAdd_CI" comparator="0">
+        <display-name>Call CMDB Service</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.vmware.hackathon.achris.cmdbservice").cmdbServiceAdd_CI(serviceName,endPointURL,userName,password,entryName,entryValue);
+</script>
+        <in-binding>
+            <bind name="serviceName" type="string" export-name="CMDBServiceName">
+                <description></description>
+            </bind>
+            <bind name="endPointURL" type="string" export-name="endpointURL">
+                <description></description>
+            </bind>
+            <bind name="userName" type="string" export-name="userName">
+                <description></description>
+            </bind>
+            <bind name="password" type="SecureString" export-name="password">
+                <description></description>
+            </bind>
+            <bind name="entryName" type="string" export-name="CMDBEntryName">
+                <description></description>
+            </bind>
+            <bind name="entryValue" type="number" export-name="CMDBEntrySize">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="Any" export-name="actionResult"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="60.0" x="320.0"/>
+    </workflow-item>
+    <workflow-item name="item2" out-name="item1" type="task" comparator="0">
+        <display-name>Assign Connection Info</display-name>
+        <script encoded="false">var serviceName = CMDBServiceName.toLowerCase();
+switch (serviceName){
+    case "kangaroo":
+        endpointURL = KangarooURL;
+        userName = KanagrooUserName;
+        password = KangarooPwd;
+    break;
+    case "wombat":
+        endpointURL = WombatURL;
+        userName = WombatUserName;
+        password = WombatPwd;
+    break;
+    case "platypus":
+        endpointURL = PlatypusURL;
+        userName = PlatypusUserName;
+        password = PlatypusPwd;
+    break;
+}
+</script>
+        <in-binding>
+            <bind name="CMDBServiceName" type="string" export-name="CMDBServiceName"/>
+            <bind name="KanagrooUserName" type="string" export-name="KanagrooUserName"/>
+            <bind name="PlatypusUserName" type="string" export-name="PlatypusUserName"/>
+            <bind name="WombatUserName" type="string" export-name="WombatUserName"/>
+            <bind name="KangarooURL" type="string" export-name="KangarooURL"/>
+            <bind name="WombatURL" type="string" export-name="WombatURL"/>
+            <bind name="PlaytpusURL" type="string" export-name="PlaytpusURL"/>
+            <bind name="KangarooPwd" type="SecureString" export-name="KangarooPwd"/>
+            <bind name="WombatPwd" type="SecureString" export-name="WombatPwd"/>
+            <bind name="PlatypusPwd" type="SecureString" export-name="PlatypusPwd"/>
+        </in-binding>
+        <out-binding>
+            <bind name="endpointURL" type="string" export-name="endpointURL"/>
+            <bind name="userName" type="string" export-name="userName"/>
+            <bind name="password" type="SecureString" export-name="password"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="180.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>

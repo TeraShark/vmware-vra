@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="greetingServiceFactory" result-type="Any" api-version="6.0.0" id="8afdac4b-8f28-304e-977e-ac09481db67c" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.greetingservice">
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+    var englishGreetingService = Class.load("com.vmware.hackathon.achris.greetingservice.english", 
+            "englishGreetingService");
+    var frenchGreetingSerivce = Class.load("com.vmware.hackathon.achris.greetingservice.french", 
+            "frenchGreetingService");
+    var afrikaansServiceBase = Class.load("com.vmware.hackathon.achris.greetingservice.afrikaans", 
+            "afrikaansGreetingService");
+
+    return Class.define(function greetingServiceFactory(){
+        this.getService = function(locale){
+            if (locale == "en"){
+                return new englishGreetingService();
+            } else if (locale == "fr"){
+                return new frenchGreetingSerivce();
+            } else if (locale == "af"){
+                return new afrikaansServiceBase();
+            }
+            else {
+                throw "Unknown locale: " + locale;
+            }
+        }
+    });
+]]></script>
+</dunes-script-module>

@@ -1,0 +1,169 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="RestHostFactory" result-type="Any" api-version="6.0.0" id="1109e3a5-db66-3a23-831c-1ffd8e21dab5" version="2.5.7" allowed-operations="vef" category-name="com.vmware.pscoe.library.rest">
+  <script encoded="false"><![CDATA[var logger = System.getModule("com.vmware.pscoe.library.logging").getLogger("com.vmware.pscoe.library.rest.RestHostFactory");
+// function constructor - object
+function RestHostFactory() {/*empty constructor*/}
+// private members
+var options = {
+	url: null,
+	name: null,
+	sleepTimeout: 1000,
+	connectionTimeout: 30,
+	operationTimeout: 60,
+	hostVerification: false,
+	proxyHost: null,
+	proxyPort: 0,
+	ignoreWarnings: true,
+	sessionType: "Shared Session",
+	authenticationType: "Basic",
+};
+var user = {
+	username: null,
+	password: null
+};
+
+var findHostByUrl = function(url) {
+	var hosts = RESTHostManager.getHosts();
+	var altUrl = null;
+	// url might be using trivial ports (80 and 443), the url match must succeed in that case as well
+	if (url != null) {
+		var protoColPos = url.indexOf(':');
+		if (protoColPos > 0) {
+			var proto = url.substring(0, protoColPos);
+			var hostPortStartPos = 0;
+			for (hostPortStartPos = protoColPos + 1; url.charAt(hostPortStartPos) == '/'; hostPortStartPos++) {/*empty*/}
+
+			if (hostPortStartPos > 0) {
+				var pathStartPos = url.indexOf('/', hostPortStartPos);
+				var hostPort = url.substring(hostPortStartPos, pathStartPos > 0 ? pathStartPos : url.length);
+
+				var hostPortSeparatorPos = hostPort.indexOf(':');
+				var host = hostPort.substring(0, hostPortSeparatorPos > 0 ? hostPortSeparatorPos : hostPort.length);
+				var port = hostPortSeparatorPos > 0 ? hostPort.substring(hostPortSeparatorPos + 1) : -1;
+				var path = pathStartPos > 0 ? url.substring(pathStartPos) : "";
+
+				if (-1 == port) {
+					altUrl = proto + "://" + host + ("https" == proto ? ":443" : ":80") + path;
+				} else if ((80 == port && "http" == proto) || (443 == port && "https" == proto)) {
+					altUrl = proto + "://" + host + path;
+				}
+			}
+		}
+	}
+	for (var i in hosts) {
+		var id = hosts[i];
+		var h = RESTHostManager.getHost(id);
+		if (h.url == url || (null != altUrl && altUrl == h.url)) {
+			logger.info("Host found!");
+			return h;
+		}
+	}
+	return null;
+};
+var importCertificate = function() {
+	var importCertificateWf = Server.getWorkflowWithId("c5a874a2-e8e7-480d-bdde-d1a80b8a3011"); // "Import a certificate from url" workflow
+	var workflowParameters = new Properties();
+	workflowParameters.put("url", options.url);
+	workflowParameters.put("ignoreWarnings", options.ignoreWarnings);
+	var wfToken = importCertificateWf.execute(workflowParameters);
+	System.getModule("com.vmware.pscoe.library.util").waitForWorkflowToComplete(wfToken, 1, 30);
+};
+var addHost = function() {
+	var basicHost = RESTHostManager.createHost ? RESTHostManager.createHost(options.name) : new RESTHost(options.name);
+	basicHost.url = options.url;
+	basicHost.connectionTimeout = options.connectionTimeout;
+	basicHost.operationTimeout = options.operationTimeout;
+	basicHost.hostVerification = options.hostVerification;
+	basicHost.proxyHost = options.proxyHost;
+	basicHost.proxyPort = options.proxyPort;
+
+	if (user && user.username) {
+		var authParams = [options.sessionType, user.username, user.password];
+		var authenticationObject = RESTAuthenticationManager.createAuthentication(options.authenticationType, authParams);
+		basicHost.authentication = authenticationObject;
+	}
+
+	return RESTHostManager.addHost(basicHost);
+};
+var createHost = function() {
+	if ((/^https:/).test(options.url)) {
+		importCertificate();
+		return addHost();
+	}
+	return addHost();
+};
+
+var setUser = function(username, password) {
+	if (!username || !password) {
+		throw "Please provide username and password for the rest host";
+	}
+	user.username = username;
+	user.password = password;
+};
+var extend = function(a, b) {
+	for (var key in b) {
+		if (b.hasOwnProperty(key)) {
+			a[key] = b[key];
+		}
+	}
+	return a;
+};
+var setOptions = function(userOptions) {
+	if (!userOptions.name || !userOptions.url) {
+		throw "Please provide name and url for the rest host";
+	}
+	options = extend(options, userOptions); // will overwrite only the passed params in {options}
+};
+var getHost = function(url, name, username, password) {
+	var host = findHostByUrl(url);
+	if (!host) {
+
+		var opts = {
+			url: url,
+			name: name
+		};
+
+		if (username) {
+			setUser(username, password);
+			opts.authenticationType = "Basic"
+		} else {
+			opts.authenticationType = "None"
+		}
+
+		setOptions(opts);
+		host = createHost(); // returned host cound not be used directly - no resourceId set
+		logger.info("REST host added: " + host.url);
+		host = findHostByUrl(url);
+	}
+	return host;
+};
+
+
+// public object API
+RestHostFactory.prototype = {};
+
+// public static API
+RestHostFactory.findHost = function(url) {
+	return findHostByUrl(url);
+};
+RestHostFactory.newHostWithBasicAuth = function(url, name, username, password) {
+	return getHost(url, name, username, password);
+};
+
+RestHostFactory.newHostWithNoAuth = function(url, name) {
+	return getHost(url, name);
+};
+
+RestHostFactory.removeHost = function(url) {
+	var host = findHostByUrl(url);
+	if (host) {
+		RESTHostManager.removeHost(host.id);
+	}
+	else {
+		logger.warn("Rest host with URL:" + url + " was not found!");
+	}
+};
+
+return RestHostFactory;
+]]></script>
+</dunes-script-module>

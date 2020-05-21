@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="cmdbServiceAdd_CI" result-type="Any" api-version="6.0.0" id="fc5d24e5-03bc-336e-9ff3-415236494273" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.cmdbservice">
+  <param n="serviceName" t="Any"><![CDATA[]]></param>
+  <param n="endPointURL" t="Any"><![CDATA[]]></param>
+  <param n="userName" t="Any"><![CDATA[]]></param>
+  <param n="password" t="Any"><![CDATA[]]></param>
+  <param n="entryName" t="Any"><![CDATA[]]></param>
+  <param n="entryValue" t="Any"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+var cmdbServiceFactory = Class.load("com.vmware.hackathon.achris.cmdbservice", 
+        "cmdbServiceFactory");
+
+var factory = new cmdbServiceFactory();
+
+var cmdbService = factory.getService(serviceName);
+cmdbService.initialize(endPointURL, serviceName, userName, password);
+return cmdbService.add(entryName, entryValue);
+]]></script>
+</dunes-script-module>

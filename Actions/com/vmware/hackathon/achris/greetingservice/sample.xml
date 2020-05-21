@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="sample" result-type="number" api-version="6.0.0" id="5422f778-f878-3c91-b00e-c9810fdac7c1" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.greetingservice">
+  <description><![CDATA[Write a brief description of the purpose of the action.]]></description>
+  <param n="x" t="number"><![CDATA[describe each parameter as in JSDoc format.]]></param>
+  <param n="y" t="number"><![CDATA[you can use different vRO types.]]></param>
+  <script encoded="false"><![CDATA[return x + y;
+]]></script>
+</dunes-script-module>

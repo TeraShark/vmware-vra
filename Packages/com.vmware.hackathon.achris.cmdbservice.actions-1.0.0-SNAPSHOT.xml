@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='d49c4779-29d4-3b0c-a8ce-c92f64ded2e2'&dunesName='Action'&name='kangarooCmdbService'&category='com.vmware.hackathon.achris.cmdbservice.kangaroo']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='83925579-739a-336d-a0b3-036f5e4e2b8f'&dunesName='Action'&name='cmdbServiceBase'&category='com.vmware.hackathon.achris.cmdbservice']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='fc5d24e5-03bc-336e-9ff3-415236494273'&dunesName='Action'&name='cmdbServiceAdd_CI'&category='com.vmware.hackathon.achris.cmdbservice']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='61573114-6eaf-3236-980b-15e8d8bddd38'&dunesName='Action'&name='cmdbServiceFactory'&category='com.vmware.hackathon.achris.cmdbservice']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='4ce01e2b-2013-3a2b-b3da-a01582849d35'&dunesName='Action'&name='cmdbServiceDelete_CI'&category='com.vmware.hackathon.achris.cmdbservice']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='28faf904-616a-3147-b082-e3b59ce37d42'&dunesName='Action'&name='wombatCmdbService'&category='com.vmware.hackathon.achris.cmdbservice.wombat']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='3c41d5d4-1f0e-3c70-8ab9-9e2bccdc7bfd'&dunesName='Action'&name='platypusCmdbService'&category='com.vmware.hackathon.achris.cmdbservice.platypus']]></elm>
+</package>

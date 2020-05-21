@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="cmdbServiceBase" result-type="Any" api-version="6.0.0" id="83925579-739a-336d-a0b3-036f5e4e2b8f" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.cmdbservice">
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+return Class.define(function cmdbServiceBase(){
+    this.add = function(name, size){
+        throw "Not implemented!";
+    };
+    this.delete = function(id){
+        throw "Not implemented!";
+    };
+    this.initialize = function(endpointUrl, endpointName, username, password){
+        throw "Not implemented!";
+    }
+}, {}, null);
+]]></script>
+</dunes-script-module>

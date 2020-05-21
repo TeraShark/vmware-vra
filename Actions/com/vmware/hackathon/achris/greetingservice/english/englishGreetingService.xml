@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="englishGreetingService" result-type="Any" api-version="6.0.0" id="2e4b10f6-265a-3e30-8cd7-c5d41e5cf5e4" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.greetingservice.english">
+  <param n="str" t="string"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+var greetingServiceBase = Class.load("com.vmware.hackathon.achris.greetingservice", 
+        "greetingServiceBase");
+return Class.define(function englishGreetingService(){
+    this.greet = function(name){
+        return "Hello, " + name + "!";
+    }
+}, null, greetingServiceBase);
+]]></script>
+</dunes-script-module>

@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="wombatCmdbService" result-type="Any" api-version="6.0.0" id="28faf904-616a-3147-b082-e3b59ce37d42" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.cmdbservice.wombat">
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+var cmdbServiceBase = Class.load("com.vmware.hackathon.achris.cmdbservice", 
+        "cmdbServiceBase");
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+ 
+return Class.define(function wombatCmdbService(){
+    cmdbServiceBase.call(this);
+    this.restClient = new RestClient(null);
+
+    this.initialize = function(endpointUrl, endpointName, username, password){
+        this.restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, username, password); 
+        this.restClient = new RestClient(host);
+        return true;
+    };
+
+    this.add = function(name, size){
+        //REST Call and return RowID;
+       
+        var request = {
+            path: '/cmdb/v1/recrod',
+            params: [],
+            content: '<CreateRecord><Name>' + name + '</Name><Size>' + size + '</Size></CreateRecord>',
+            options: {
+                skipEncodeParams: false,	
+                returnResponseObject: false,		
+                returnResponseObjectForReal: false, 	
+                stringifyJsonContent: false,	
+                interpretResponseCode: false,	
+                headers: {
+                    'Content-Type': 'application/xml',
+                    'Accept': 'application/xml'
+                },
+                errorHandler: {					//Defines a retry mechanism in case of failed requests
+                    numberOfRetries: 3,			//Number of retries
+                    retryWaitInterval: 15,			//Polling interval in seconds
+                    errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+                }
+            }
+        }
+    
+        var response = this.restClient.post(
+            request.path, 
+            request.params,
+            request.content,
+            request.options
+        );
+	        if (response.statusCode < 200 || response.statusCode > 299){
+            throw ("Creation failed. Received Response Code: " + response.statusCode);
+        };
+        return true;
+    };
+    this.delete = function(id){
+        var request = {
+            path: '/cmdb/v1/recrod',
+            params: [],
+            content: '<DeleteRecord><Id>' + id + '</Id></DeleteRecord>',
+            options: {
+                skipEncodeParams: false,	
+                returnResponseObject: false,		
+                returnResponseObjectForReal: false, 	
+                stringifyJsonContent: false,
+                interpretResponseCode: false,	
+                headers: {
+                    'Content-Type': 'application/xml',
+                    'Accept': 'application/xml'
+                },
+                errorHandler: {					//Defines a retry mechanism in case of failed requests
+                    numberOfRetries: 3,			//Number of retries
+                    retryWaitInterval: 15,			//Polling interval in seconds
+                    errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+                }
+            }
+        }
+    
+        var response = this.restClient.post(
+            request.path, 
+            request.params,
+            request.content,
+            request.options
+        );
+        if (response.statusCode < 200 || response.statusCode > 299){
+            throw ("Deletion failed. Received Response Code: " + response.statusCode);
+        };
+        return true;
+    };
+}, null, cmdbServiceBase);
+]]></script>
+</dunes-script-module>

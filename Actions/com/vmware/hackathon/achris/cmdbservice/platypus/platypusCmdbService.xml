@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="platypusCmdbService" result-type="Any" api-version="6.0.0" id="3c41d5d4-1f0e-3c70-8ab9-9e2bccdc7bfd" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.cmdbservice.platypus">
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+var cmdbServiceBase = Class.load("com.vmware.hackathon.achris.cmdbservice", 
+        "cmdbServiceBase");
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+return Class.define(function platypusCmdbService(){
+    cmdbServiceBase.call(this);
+    this.restClient = new RestClient(null);
+
+    this.initialize = function(endpointUrl, endpointName, username, password){
+        this.restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, username, password); 
+        this.restClient = new RestClient(host);
+        return true;
+    };
+
+    this.add = function(name, size){
+        var urlTemplate = "/api/transaction/create";
+        var httpData = this.restClient.post(urlTemplate, [], { "name" : name, "size" : size });
+        if (httpData.statusCode != 200){
+            throw "Error adding CMDB entry. Received Status Code: " + httpData.statusCode;
+        }
+        var transData = JSON.parse(httpData.contentAsString);
+        urlTemplate = "/api/transaction/commit";
+        httpData = this.restClient.post(urlTemplate, [], transData);
+        if (httpData.statusCode != 200){
+            throw "Error committing CMDB addition. Received Status Code: " + httpData.statusCode;
+        }
+
+        return true; 
+    };
+    this.delete = function(id){
+        var urlTemplate = "/api/transaction/delete";
+        var httpData = this.restClient.post(urlTemplate, [], { "id" : id });
+        if (httpData.statusCode != 200){
+            throw "Error deleting CMDB entry. Received Status Code: " + httpData.statusCode;
+        }
+        var transData = JSON.parse(httpData.contentAsString);
+        urlTemplate = "/api/transaction/commit";
+        httpData = this.restClient.post(urlTemplate, [], transData);
+        if (httpData.statusCode != 200){
+            throw "Error committing CMDB deletion. Received Status Code: " + httpData.statusCode;
+        }
+
+        return true;
+    };
+}, null, cmdbServiceBase);
+]]></script>
+</dunes-script-module>

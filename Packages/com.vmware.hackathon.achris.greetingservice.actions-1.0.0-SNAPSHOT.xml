@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='b8dfb914-4455-37f9-951f-48702264f74c'&dunesName='Action'&name='frenchGreetingService'&category='com.vmware.hackathon.achris.greetingservice.french']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='8afdac4b-8f28-304e-977e-ac09481db67c'&dunesName='Action'&name='greetingServiceFactory'&category='com.vmware.hackathon.achris.greetingservice']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='7d701069-c925-330b-988e-c5d136107e17'&dunesName='Action'&name='greetingServiceBase'&category='com.vmware.hackathon.achris.greetingservice']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='5422f778-f878-3c91-b00e-c9810fdac7c1'&dunesName='Action'&name='sample'&category='com.vmware.hackathon.achris.greetingservice']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='2e4b10f6-265a-3e30-8cd7-c5d41e5cf5e4'&dunesName='Action'&name='englishGreetingService'&category='com.vmware.hackathon.achris.greetingservice.english']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='952edffe-1192-3f14-a78d-e24f392a19b6'&dunesName='Action'&name='afrikaansGreetingService'&category='com.vmware.hackathon.achris.greetingservice.afrikaans']]></elm>
+</package>

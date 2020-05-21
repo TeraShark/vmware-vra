@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="cmdbServiceFactory" result-type="Any" api-version="6.0.0" id="61573114-6eaf-3236-980b-15e8d8bddd38" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.cmdbservice">
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+var kangarooCmdbService = Class.load("com.vmware.hackathon.achris.cmdbservice.kangaroo", 
+        "kangarooCmdbService");
+var platypusCmdbService = Class.load("com.vmware.hackathon.achris.cmdbservice.platypus", 
+        "platypusCmdbService");
+var wombatCmdbService = Class.load("com.vmware.hackathon.achris.cmdbservice.wombat",
+        "wombatCmdbService");
+    
+return Class.define(function cmdbServiceFactory(){
+    this.getService = function(service){
+        var safeServiceName = service.toLowerCase();
+        if (safeServiceName == "kangaroo"){
+            return new kangarooCmdbService();
+        } else if (safeServiceName == "platypus"){
+            return new platypusCmdbService();
+        } else if (safeServiceName == "wombat"){
+            return new wombatCmdbService();
+        }
+        else {
+            throw "Unknown CMDB Service: " + service;
+        }
+    }
+});
+]]></script>
+</dunes-script-module>

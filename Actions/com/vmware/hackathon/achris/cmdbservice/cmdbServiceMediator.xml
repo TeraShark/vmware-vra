@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="cmdbServiceMediator" result-type="Any" api-version="6.0.0" id="654340be-aa2e-3c8f-9ec0-e6831bfaa907" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.cmdbservice">
+  <param n="serviceName" t="Any"/>
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+var cmdbServiceFactory = Class.load("com.vmware.hackathon.achris.cmdbservice", 
+        "cmdbServiceFactory");
+
+var factory = new cmdbServiceFactory();
+
+var cmdbService = factory.getService(serviceName);
+return cmdbService;
+]]></script>
+</dunes-script-module>

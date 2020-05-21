@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="greetingServiceBase" result-type="Any" api-version="6.0.0" id="7d701069-c925-330b-988e-c5d136107e17" version="1.0.0" allowed-operations="vef" category-name="com.vmware.hackathon.achris.greetingservice">
+  <script encoded="false"><![CDATA[var Class = System.getModule("com.vmware.pscoe.library.class").Class();
+
+return Class.define(function greetingServiceBase(){
+    this.greet = function(name){
+        throw "Not Implemented";
+    };
+    
+}, null, null);
+]]></script>
+</dunes-script-module>
