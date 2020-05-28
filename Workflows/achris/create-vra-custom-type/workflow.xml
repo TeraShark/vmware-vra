@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="78950e9c-43b3-436c-be75-c26a3da15dc9" editor-version="2.0" version="0.0.3" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
-    <display-name>create-custom-type</display-name>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="78950e9c-43b3-436c-be75-c26a3da15dc9" editor-version="2.0" version="0.0.4" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>create-vra-custom-type</display-name>
+    <description>Wrapper Workflow for Dynamic Types Creation for vRA</description>
     <position y="50.0" x="100.0"/>
     <input>
         <param name="namespace" type="string"/>
@@ -17,10 +18,19 @@
     <attrib name="token" type="string">
         <value encoded="n"></value>
     </attrib>
+    <attrib name="wfid_update" type="string">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="wfid_create" type="string">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="wfid_delete" type="string">
+        <value encoded="n"/>
+    </attrib>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="45.844970061659424" x="873.4442766121177"/>
+        <position y="216.36363636363635" x="107.27272727272727"/>
     </workflow-item>
     <workflow-item name="item1" out-name="item2" type="link" linked-workflow-id="5b8ff1c1-7f21-442a-956b-f28599ec422c" comparator="0">
         <display-name>Create Namespace</display-name>
@@ -233,6 +243,8 @@ var w = new Workflow();&#13;
 Server.tagGlobally(newWf, "achris", null);&#13;
 System.debug("Done");&#13;
 &#13;
+wfid_create = newId;&#13;
+&#13;
 function createGuid()  &#13;
 {  &#13;
    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {  &#13;
@@ -245,9 +257,11 @@ function createGuid()  &#13;
             <bind name="typeName" type="string" export-name="typeName"/>
             <bind name="namespace" type="string" export-name="namespace"/>
         </in-binding>
-        <out-binding/>
+        <out-binding>
+            <bind name="wfid_create" type="string" export-name="wfid_create"/>
+        </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="540.0"/>
+        <position y="117.27272727272727" x="412.7272727272727"/>
     </workflow-item>
     <workflow-item name="item6" out-name="item7" type="task" comparator="0">
         <display-name>duplicate update workflow</display-name>
@@ -362,6 +376,8 @@ var w = new Workflow();&#13;
 Server.tagGlobally(newWf, "achris", null);&#13;
 System.debug("Done");&#13;
 &#13;
+wfid_update = newId;&#13;
+&#13;
 function createGuid()  &#13;
 {  &#13;
    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {  &#13;
@@ -374,11 +390,13 @@ function createGuid()  &#13;
             <bind name="typeName" type="string" export-name="typeName"/>
             <bind name="namespace" type="string" export-name="namespace"/>
         </in-binding>
-        <out-binding/>
+        <out-binding>
+            <bind name="wfid_update" type="string" export-name="wfid_update"/>
+        </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="62.62346384156524" x="633.904285411599"/>
+        <position y="117.27272727272727" x="303.6363636363636"/>
     </workflow-item>
-    <workflow-item name="item7" out-name="item0" type="task" comparator="0">
+    <workflow-item name="item7" out-name="item8" type="task" comparator="0">
         <display-name>duplicate delete workflow</display-name>
         <script encoded="false">//get workflow content to copy:&#13;
 //GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
@@ -491,6 +509,8 @@ var w = new Workflow();&#13;
 Server.tagGlobally(newWf, "achris", null);&#13;
 System.debug("Done");&#13;
 &#13;
+wfid_delete = newId;&#13;
+&#13;
 function createGuid()  &#13;
 {  &#13;
    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {  &#13;
@@ -499,9 +519,120 @@ function createGuid()  &#13;
    });  &#13;
 } </script>
         <in-binding/>
+        <out-binding>
+            <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="117.27272727272727" x="176.36363636363635"/>
+    </workflow-item>
+    <workflow-item name="item8" out-name="item0" type="task" comparator="0">
+        <display-name>Create vRA Resource</display-name>
+        <script encoded="false">//https://cava-6-240-202.eng.vmware.com/form-service/api/custom/resource-types&#13;
+var payload = {&#13;
+  "displayName": typeName,&#13;
+  "description": namespace + "." + typeName,&#13;
+  "resourceType": typeName,&#13;
+  "externalType": "	DynamicTypes:" + namespace + "." + typeName,&#13;
+  "status": "RELEASED",&#13;
+  "properties": {&#13;
+    "type": "object",&#13;
+    "properties": {&#13;
+      "input_0": {&#13;
+        "type": "string",&#13;
+        "title": "input_0"&#13;
+      }&#13;
+    },&#13;
+    "required": [&#13;
+    ]&#13;
+  },&#13;
+  "additionalActions": [&#13;
+    /*{&#13;
+      "displayName": "day2-add-database",&#13;
+      "name": "day2-add-database",&#13;
+      "runnableItem": {&#13;
+        "id": "18541090831854109083178946495518541090830101010101010101010101010",&#13;
+        "name": "Add a database",&#13;
+        "description": "Adds a database object to the plug-in's inventory.",&#13;
+        "type": "vro.workflow",&#13;
+        "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+      }&#13;
+    }*/&#13;
+  ],&#13;
+  "mainActions": {&#13;
+    "create": {&#13;
+      "id": wfid_create,&#13;
+      "name": "create " + namespace + "." + typeName,&#13;
+      "type": "vro.workflow",&#13;
+      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+    },&#13;
+    "update": {&#13;
+      "id": wfid_update,&#13;
+      "name": "update " + namespace + "." + typeName,&#13;
+      "type": "vro.workflow",&#13;
+      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+    },&#13;
+    "delete": {&#13;
+     "id": wfid_delete,&#13;
+      "name": "delete " + namespace + "." + typeName,&#13;
+      "type": "vro.workflow",&#13;
+      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+    }&#13;
+  }&#13;
+}&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+var request = {&#13;
+    path: '/form-service/api/custom/resource-types',&#13;
+    params: [],&#13;
+    content: payload,&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Creating Custom Resource via API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}</script>
+        <in-binding>
+            <bind name="token" type="string" export-name="token"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="wfid_create" type="string" export-name="wfid_create"/>
+            <bind name="wfid_update" type="string" export-name="wfid_update"/>
+            <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+        </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>
-        <position y="61.13993028017356" x="732.1814892580961"/>
+        <position y="117.27272727272727" x="67.27272727272727"/>
     </workflow-item>
     <presentation/>
 </ns2:workflow>
