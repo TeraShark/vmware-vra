@@ -1,15 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="78950e9c-43b3-436c-be75-c26a3da15dc9" editor-version="2.0" version="0.0.4" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item9" object-name="workflow:name=generic" id="78950e9c-43b3-436c-be75-c26a3da15dc9" editor-version="2.0" version="0.0.5" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
     <display-name>create-vra-custom-type</display-name>
     <description>Wrapper Workflow for Dynamic Types Creation for vRA</description>
-    <position y="50.0" x="100.0"/>
+    <position y="52.72727272727272" x="89.09090909090908"/>
     <input>
         <param name="namespace" type="string"/>
         <param name="typeName" type="string"/>
-        <param name="iconResourceFileName" type="ResourceElement"/>
         <param name="typeProperties" type="Array/string"/>
-        <param name="generateFinderStubs" type="boolean"/>
-        <param name="target_folder" type="WorkflowCategory"/>
     </input>
     <output/>
     <attrib name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition">
@@ -19,59 +16,24 @@
         <value encoded="n"></value>
     </attrib>
     <attrib name="wfid_update" type="string">
-        <value encoded="n"/>
+        <value encoded="n">bb3b44ee-fe9c-43fa-a246-2d4d98c1a1d4</value>
     </attrib>
     <attrib name="wfid_create" type="string">
-        <value encoded="n"/>
+        <value encoded="n">597baeeb-abfa-43e0-87ae-eaca6a4ef8d8</value>
     </attrib>
     <attrib name="wfid_delete" type="string">
-        <value encoded="n"/>
+        <value encoded="n">aa71e7d6-22d8-42b9-9794-f52d0c43309f</value>
+    </attrib>
+    <attrib name="icon" type="ResourceElement">
+        <value encoded="n">dunes://service.dunes.ch/ResourceElement?id='ccc63028-0b79-48ad-bf8d-4078a2d058ce'&amp;dunesName='ResourceElement'</value>
+    </attrib>
+    <attrib name="workflowStubsCategory" type="WorkflowCategory">
+        <value encoded="n">dunes://service.dunes.ch/WorkflowCategory?id='8a74805971f49d72017219ad7dfe0273'&amp;dunesName='WorkflowCategory'</value>
     </attrib>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="216.36363636363635" x="107.27272727272727"/>
-    </workflow-item>
-    <workflow-item name="item1" out-name="item2" type="link" linked-workflow-id="5b8ff1c1-7f21-442a-956b-f28599ec422c" comparator="0">
-        <display-name>Create Namespace</display-name>
-        <script encoded="false"></script>
-        <in-binding>
-            <bind name="namespace" type="string" export-name="namespace"/>
-        </in-binding>
-        <out-binding>
-            <bind name="actionResult" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
-        </out-binding>
-        <description> </description>
-        <position y="60.0" x="180.0"/>
-    </workflow-item>
-    <workflow-item name="item2" out-name="item4" type="link" linked-workflow-id="52d82b26-4142-44c4-87d6-3d26b2075502" comparator="0">
-        <display-name>Create Type</display-name>
-        <script encoded="false"></script>
-        <in-binding>
-            <bind name="namespace" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
-            <bind name="typeName" type="string" export-name="typeName"/>
-            <bind name="icon" type="ResourceElement" export-name="iconResourceFileName"/>
-            <bind name="props" type="Array/string" export-name="typeProperties"/>
-            <bind name="generateWorkflowStubs" type="boolean" export-name="generateFinderStubs"/>
-            <bind name="workflowStubsCategory" type="WorkflowCategory" export-name="target_folder"/>
-            <bind name="findByIdBindingType" type="string" export-name=""/>
-            <bind name="findByIdBindingAction" type="Action" export-name=""/>
-            <bind name="findByIdBindingWorkflow" type="Workflow" export-name=""/>
-            <bind name="findAllBindingType" type="string" export-name=""/>
-            <bind name="findAllBindingAction" type="Action" export-name=""/>
-            <bind name="findAllBindingWorkflow" type="Workflow" export-name=""/>
-            <bind name="hasChildrenInRelationBindingType" type="string" export-name=""/>
-            <bind name="hasChildrenInRelationBindingAction" type="Action" export-name=""/>
-            <bind name="hasChildrenInRelationBindingWorkflow" type="Workflow" export-name=""/>
-            <bind name="findRelationBindingType" type="string" export-name=""/>
-            <bind name="findRelationBindingAction" type="Action" export-name=""/>
-            <bind name="findRelationBindingWorkflow" type="Workflow" export-name=""/>
-        </in-binding>
-        <out-binding>
-            <bind name="actionResult" type="DynamicTypes:DynamicTypeDefinition" export-name=""/>
-        </out-binding>
-        <description> </description>
-        <position y="60.0" x="300.0"/>
+        <position y="207.27272727272725" x="89.09090909090908"/>
     </workflow-item>
     <workflow-item name="item4" out-name="item5" type="task" comparator="0">
         <display-name>Auth token</display-name>
@@ -121,23 +83,20 @@ var access_token = JSON.parse(httpData.contentAsString).access_token;&#13;
 token = access_token;&#13;
 &#13;
 </script>
-        <in-binding>
-            <bind name="target_folder" type="WorkflowCategory" export-name="target_folder"/>
-        </in-binding>
+        <in-binding/>
         <out-binding>
             <bind name="token" type="string" export-name="token"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="420.0"/>
+        <position y="62.72727272727272" x="485.4545454545454"/>
     </workflow-item>
     <workflow-item name="item5" out-name="item6" type="task" comparator="0">
-        <display-name>duplicate create workflow</display-name>
+        <display-name>"create" workflow</display-name>
         <script encoded="false">//get workflow content to copy:&#13;
 //GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
 &#13;
 var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
 var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
-&#13;
 &#13;
 var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
 var endpointName = "vRA";&#13;
@@ -187,6 +146,14 @@ var newId = createGuid();&#13;
 //System.debug(httpData.contentAsString);&#13;
 var newWfName = "Create " + namespace + "." + typeName;&#13;
 wfContent["display-name"] = newWfName;&#13;
+var inputs = {"param":[]};&#13;
+var presentation =  {"p-param": [] };&#13;
+&#13;
+for each(var prop in typeProperties){&#13;
+    inputs.param.push({"name":prop,"type":"string"});&#13;
+    presentation["p-param"].push({ "desc": prop, "name": prop});&#13;
+}&#13;
+&#13;
 var outputs = {&#13;
       "param": [&#13;
         {&#13;
@@ -197,6 +164,8 @@ var outputs = {&#13;
     };&#13;
 wfContent["id"] = newId;&#13;
 wfContent["output"] = outputs;&#13;
+wfContent["input"] = inputs;&#13;
+wfContent["presentation"] = presentation;&#13;
 var newWfContent = {"name":newWfName, "schema-workflow":wfContent};&#13;
 &#13;
 //POST https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows&#13;
@@ -256,15 +225,16 @@ function createGuid()  &#13;
             <bind name="token" type="string" export-name="token"/>
             <bind name="typeName" type="string" export-name="typeName"/>
             <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
         </in-binding>
         <out-binding>
             <bind name="wfid_create" type="string" export-name="wfid_create"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="117.27272727272727" x="412.7272727272727"/>
+        <position y="135.45454545454544" x="485.4545454545454"/>
     </workflow-item>
     <workflow-item name="item6" out-name="item7" type="task" comparator="0">
-        <display-name>duplicate update workflow</display-name>
+        <display-name>"update" workflow</display-name>
         <script encoded="false">//get workflow content to copy:&#13;
 //GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
 &#13;
@@ -320,6 +290,14 @@ var newId = createGuid();&#13;
 //System.debug(httpData.contentAsString);&#13;
 var newWfName = "Update " + namespace + "." + typeName;&#13;
 wfContent["display-name"] = newWfName;&#13;
+var inputs = {"param":[]};&#13;
+var presentation =  {"p-param": [] };&#13;
+&#13;
+for each(var prop in typeProperties){&#13;
+    inputs.param.push({"name":prop,"type":"string"});&#13;
+    presentation["p-param"].push({ "desc": prop, "name": prop});&#13;
+}&#13;
+&#13;
 var outputs = {&#13;
       "param": [&#13;
         {&#13;
@@ -330,6 +308,9 @@ var outputs = {&#13;
     };&#13;
 wfContent["id"] = newId;&#13;
 wfContent["output"] = outputs;&#13;
+wfContent["input"] = inputs;&#13;
+wfContent["presentation"] = presentation;&#13;
+&#13;
 var newWfContent = {"name":newWfName, "schema-workflow":wfContent};&#13;
 &#13;
 //POST https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows&#13;
@@ -389,15 +370,16 @@ function createGuid()  &#13;
             <bind name="token" type="string" export-name="token"/>
             <bind name="typeName" type="string" export-name="typeName"/>
             <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
         </in-binding>
         <out-binding>
             <bind name="wfid_update" type="string" export-name="wfid_update"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="117.27272727272727" x="303.6363636363636"/>
+        <position y="135.45454545454544" x="340.0"/>
     </workflow-item>
     <workflow-item name="item7" out-name="item8" type="task" comparator="0">
-        <display-name>duplicate delete workflow</display-name>
+        <display-name>"delete" workflow</display-name>
         <script encoded="false">//get workflow content to copy:&#13;
 //GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
 &#13;
@@ -518,20 +500,25 @@ function createGuid()  &#13;
       return v.toString(16);  &#13;
    });  &#13;
 } </script>
-        <in-binding/>
+        <in-binding>
+            <bind name="token" type="string" export-name="token"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+        </in-binding>
         <out-binding>
             <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="117.27272727272727" x="176.36363636363635"/>
+        <position y="135.45454545454544" x="194.54545454545453"/>
     </workflow-item>
     <workflow-item name="item8" out-name="item0" type="task" comparator="0">
         <display-name>Create vRA Resource</display-name>
         <script encoded="false">//https://cava-6-240-202.eng.vmware.com/form-service/api/custom/resource-types&#13;
+///form-service/api/custom/resource-types&#13;
 var payload = {&#13;
   "displayName": typeName,&#13;
   "description": namespace + "." + typeName,&#13;
-  "resourceType": typeName,&#13;
+  "resourceType": "Custom." + typeName,&#13;
   "externalType": "	DynamicTypes:" + namespace + "." + typeName,&#13;
   "status": "RELEASED",&#13;
   "properties": {&#13;
@@ -539,46 +526,49 @@ var payload = {&#13;
     "properties": {&#13;
       "input_0": {&#13;
         "type": "string",&#13;
-        "title": "input_0"&#13;
+        "title": "First input for the creation of your custom type"&#13;
       }&#13;
     },&#13;
     "required": [&#13;
     ]&#13;
   },&#13;
   "additionalActions": [&#13;
-    /*{&#13;
-      "displayName": "day2-add-database",&#13;
-      "name": "day2-add-database",&#13;
-      "runnableItem": {&#13;
-        "id": "18541090831854109083178946495518541090830101010101010101010101010",&#13;
-        "name": "Add a database",&#13;
-        "description": "Adds a database object to the plug-in's inventory.",&#13;
-        "type": "vro.workflow",&#13;
-        "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
-      }&#13;
-    }*/&#13;
+    &#13;
   ],&#13;
   "mainActions": {&#13;
     "create": {&#13;
       "id": wfid_create,&#13;
-      "name": "create " + namespace + "." + typeName,&#13;
+      "name": "Create " + namespace + "." + typeName,&#13;
+      "description": "Auto-generated Workflow",&#13;
       "type": "vro.workflow",&#13;
       "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
     },&#13;
     "update": {&#13;
       "id": wfid_update,&#13;
-      "name": "update " + namespace + "." + typeName,&#13;
+      "name": "Update " + namespace + "." + typeName,&#13;
+      "description": "Auto-generated Workflow",&#13;
       "type": "vro.workflow",&#13;
       "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
     },&#13;
     "delete": {&#13;
-     "id": wfid_delete,&#13;
-      "name": "delete " + namespace + "." + typeName,&#13;
+      "id": wfid_delete,&#13;
+      "name": "Delete " + namespace + "." + typeName,&#13;
+      "description": "Auto-generated Workflow",&#13;
       "type": "vro.workflow",&#13;
       "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
     }&#13;
   }&#13;
 }&#13;
+&#13;
+var props = {};&#13;
+for each (var prop in typeProperties){&#13;
+    props[prop] = {&#13;
+        "type": "string",&#13;
+        "title": prop&#13;
+      };&#13;
+}&#13;
+&#13;
+payload.properties.properties = props;&#13;
 &#13;
 var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
 var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
@@ -601,7 +591,7 @@ var request = {&#13;
         skipEncodeParams: true,	&#13;
         returnResponseObject: true,		&#13;
         returnResponseObjectForReal: false, 	&#13;
-        stringifyJsonContent: false,	&#13;
+        stringifyJsonContent: true,	&#13;
         interpretResponseCode: false,	&#13;
         headers: {&#13;
             'Content-Type': 'application/json',&#13;
@@ -621,7 +611,8 @@ System.debug("Creating Custom Resource via API...");&#13;
 var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
 if (httpData.statusCode != 200){&#13;
     throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
-}</script>
+}&#13;
+</script>
         <in-binding>
             <bind name="token" type="string" export-name="token"/>
             <bind name="typeName" type="string" export-name="typeName"/>
@@ -629,10 +620,72 @@ if (httpData.statusCode != 200){&#13;
             <bind name="wfid_update" type="string" export-name="wfid_update"/>
             <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
             <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
         </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>
-        <position y="117.27272727272727" x="67.27272727272727"/>
+        <position y="135.45454545454544" x="49.09090909090908"/>
+    </workflow-item>
+    <workflow-item name="item9" out-name="item10" type="task" comparator="0">
+        <display-name>Create Namespace</display-name>
+        <script encoded="false">// Validate input values&#13;
+if (namespace == null || namespace.trim().length == 0) {&#13;
+  throw "Undefined namespace: namespace cannot be null or empty";&#13;
+}&#13;
+&#13;
+// Define namespace&#13;
+var namespaceDef = DynamicTypesManager.defineNamespace(namespace);&#13;
+&#13;
+System.log("Created dynamic namespace: " + namespaceDef);&#13;
+&#13;
+namespaceRef = namespaceDef;</script>
+        <in-binding>
+            <bind name="namespace" type="string" export-name="namespace"/>
+        </in-binding>
+        <out-binding>
+            <bind name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="62.72727272727272" x="194.54545454545453"/>
+    </workflow-item>
+    <workflow-item name="item10" out-name="item4" type="task" comparator="0">
+        <display-name>Create Type</display-name>
+        <script encoded="false">// Validate and post-process input values&#13;
+if (typeName == null || typeName.trim().length == 0) {&#13;
+  throw "Undefined type: type cannot be null or empty";&#13;
+}&#13;
+&#13;
+var namespaceName = namespaceRef.name;&#13;
+typeName = typeName.trim();&#13;
+var iconResName = icon.getResourceElementCategory().path + "/" + icon.name;&#13;
+&#13;
+// Define type&#13;
+var typeDef = DynamicTypesManager.defineType(namespaceName, typeName, iconResName, typeProperties);&#13;
+if (typeDef == null) {&#13;
+  throw "Failed to create dynamic type: " + namespaceName + "." + typeName;&#13;
+}&#13;
+&#13;
+// Setup finder methods&#13;
+&#13;
+System.log("Generating workflow stubs for dynamic type: " + typeDef);&#13;
+var ids = DynamicTypesManager.generateTypeFinderMethods(typeDef.namespace, typeDef.name, workflowStubsCategory);&#13;
+DynamicTypesManager.bindTypeFinderMethods(typeDef.namespace, typeDef.name, ids[0], ids[1], ids[2], ids[3]);&#13;
+&#13;
+&#13;
+System.log("Created dynamic type: " + typeDef.name);&#13;
+&#13;
+&#13;
+</script>
+        <in-binding>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+            <bind name="icon" type="ResourceElement" export-name="icon"/>
+            <bind name="workflowStubsCategory" type="WorkflowCategory" export-name="workflowStubsCategory"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="62.72727272727272" x="340.0"/>
     </workflow-item>
     <presentation/>
 </ns2:workflow>
