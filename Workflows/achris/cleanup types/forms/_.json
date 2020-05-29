@@ -1,0 +1,1 @@
+{"schema":{"typeName":{"id":"typeName","type":{"dataType":"string"},"label":"typeName","constraints":{"required":false}}},"layout":{"pages":[{"id":"page_3ads6lo4","title":"General","sections":[{"id":"section_tm1g4lj7","fields":[{"id":"typeName","display":"textField"}]}]}]},"itemId":""}

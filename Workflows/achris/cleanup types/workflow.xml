@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item2" object-name="workflow:name=generic" id="3f4fe39c-5652-4498-bb83-269b112d1d49" editor-version="2.0" version="0.0.1" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>cleanup types</display-name>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="typeName" type="string"/>
+    </input>
+    <output/>
+    <attrib name="token" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="520.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>Clean up</display-name>
+        <script encoded="false">DynamicTypesManager.removeAll();&#13;
+&#13;
+if (typeName.length &gt; 5){&#13;
+    var ids = [];&#13;
+    var wfs = Server.findAllForType("Workflow");&#13;
+    for each(var wf in wfs){&#13;
+        if (wf.name.indexOf(typeName)&gt;= 0){&#13;
+            System.debug(wf.id + "|" + wf.name);&#13;
+            ids.push(wf.id);&#13;
+        }&#13;
+    }&#13;
+}&#13;
+&#13;
+//delete each workflow:&#13;
+//https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/ac202aba-5d0c-4e54-8390-1fae9dff3ec9&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+for each(var id in ids){&#13;
+    var request = {&#13;
+        path: '/vco-controlcenter/client/api/platform/workflows/{wfId}',&#13;
+        params: [id],&#13;
+        options: {&#13;
+            skipEncodeParams: true,	&#13;
+            returnResponseObject: true,		&#13;
+            returnResponseObjectForReal: false, 	&#13;
+            stringifyJsonContent: false,	&#13;
+            interpretResponseCode: false,	&#13;
+            headers: {&#13;
+                'Content-Type': 'application/json',&#13;
+                'Accept': 'application/json',&#13;
+                'Authorization': 'Bearer ' + token&#13;
+            },&#13;
+            errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+                numberOfRetries: 3,			//Number of retries&#13;
+                retryWaitInterval: 15,			//Polling interval in seconds&#13;
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+            }&#13;
+        }&#13;
+    };&#13;
+    System.debug("Deleting Workflow via API: " + id);&#13;
+    //var urlTemplate = "workflows/{id}";&#13;
+&#13;
+    var httpData = restClient.delete(request.path, request.params, request.options);&#13;
+    if (httpData.statusCode != 200){&#13;
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+    }&#13;
+}</script>
+        <in-binding>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="token" type="string" export-name="token"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="300.0"/>
+    </workflow-item>
+    <workflow-item name="item2" out-name="item1" type="task" comparator="0">
+        <display-name>Token</display-name>
+        <script encoded="false">&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+var request = {&#13;
+    path: '/csp/gateway/am/api/login?access_token=',&#13;
+    params: [],&#13;
+    content: JSON.stringify(requestContent),&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json'&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Calling API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+var access_token = JSON.parse(httpData.contentAsString).access_token;&#13;
+token = access_token;&#13;
+&#13;
+</script>
+        <in-binding/>
+        <out-binding>
+            <bind name="token" type="string" export-name="token"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="180.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>
