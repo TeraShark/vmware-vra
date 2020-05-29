@@ -4,9 +4,18 @@
     <description>Wrapper Workflow for Dynamic Types Creation for vRA</description>
     <position y="52.72727272727272" x="89.09090909090908"/>
     <input>
-        <param name="namespace" type="string"/>
-        <param name="typeName" type="string"/>
-        <param name="typeProperties" type="Array/string"/>
+        <param name="namespace" type="string">
+            <description>eg: com.company.types</description>
+        </param>
+        <param name="typeName" type="string">
+            <description>Simple name for the type eg "redisDB". In workflows, this will be shown as [namespace].[typeName]. Eg com.company.customTypes.RedisDB</description>
+        </param>
+        <param name="typeProperties" type="Array/string">
+            <description>The names of the fields associated with your Dynamic Type</description>
+        </param>
+        <param name="Day2Operations" type="Array/CompositeType(Title:string,Inputs:Array/string):Day2Operation">
+            <description>Define Day 2 Operations here - this will generate Workflow Stubs and bind them to the vRA Custom Resource</description>
+        </param>
     </input>
     <output/>
     <attrib name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition">
@@ -30,10 +39,13 @@
     <attrib name="workflowStubsCategory" type="WorkflowCategory">
         <value encoded="n">dunes://service.dunes.ch/WorkflowCategory?id='8a74805971f49d72017219ad7dfe0273'&amp;dunesName='WorkflowCategory'</value>
     </attrib>
+    <attrib name="day2opWorkflows" type="Any">
+        <value encoded="n"/>
+    </attrib>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="207.27272727272725" x="89.09090909090908"/>
+        <position y="280.0" x="89.09090909090908"/>
     </workflow-item>
     <workflow-item name="item4" out-name="item5" type="task" comparator="0">
         <display-name>Auth token</display-name>
@@ -210,6 +222,7 @@ var newWf = Server.getWorkflowWithId(newId);&#13;
 var w = new Workflow();&#13;
 &#13;
 Server.tagGlobally(newWf, "achris", null);&#13;
+Server.tagGlobally(newWf, namespace, typeName);&#13;
 System.debug("Done");&#13;
 &#13;
 wfid_create = newId;&#13;
@@ -355,6 +368,7 @@ var newWf = Server.getWorkflowWithId(newId);&#13;
 var w = new Workflow();&#13;
 &#13;
 Server.tagGlobally(newWf, "achris", null);&#13;
+Server.tagGlobally(newWf, namespace, typeName);&#13;
 System.debug("Done");&#13;
 &#13;
 wfid_update = newId;&#13;
@@ -378,7 +392,7 @@ function createGuid()  &#13;
         <description>Simple task with custom script capability.</description>
         <position y="135.45454545454544" x="340.0"/>
     </workflow-item>
-    <workflow-item name="item7" out-name="item8" type="task" comparator="0">
+    <workflow-item name="item7" out-name="item11" type="task" comparator="0">
         <display-name>"delete" workflow</display-name>
         <script encoded="false">//get workflow content to copy:&#13;
 //GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
@@ -489,6 +503,7 @@ var newWf = Server.getWorkflowWithId(newId);&#13;
 var w = new Workflow();&#13;
 &#13;
 Server.tagGlobally(newWf, "achris", null);&#13;
+Server.tagGlobally(newWf, namespace, typeName);&#13;
 System.debug("Done");&#13;
 &#13;
 wfid_delete = newId;&#13;
@@ -532,9 +547,7 @@ var payload = {&#13;
     "required": [&#13;
     ]&#13;
   },&#13;
-  "additionalActions": [&#13;
-    &#13;
-  ],&#13;
+  "additionalActions": [],&#13;
   "mainActions": {&#13;
     "create": {&#13;
       "id": wfid_create,&#13;
@@ -569,6 +582,20 @@ for each (var prop in typeProperties){&#13;
 }&#13;
 &#13;
 payload.properties.properties = props;&#13;
+&#13;
+for each(var wf in day2opWorkflows){&#13;
+    payload.additionalActions.push({&#13;
+      "displayName": wf.displayName,&#13;
+      "name": wf.name,&#13;
+      "runnableItem": {&#13;
+        "id": wf.id,&#13;
+        "name": wf.name,&#13;
+        "description": wf.name,&#13;
+        "type": "vro.workflow",&#13;
+        "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+      }&#13;
+    });&#13;
+}&#13;
 &#13;
 var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
 var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
@@ -621,10 +648,11 @@ if (httpData.statusCode != 200){&#13;
             <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
             <bind name="namespace" type="string" export-name="namespace"/>
             <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+            <bind name="day2opWorkflows" type="Any" export-name="day2opWorkflows"/>
         </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>
-        <position y="135.45454545454544" x="49.09090909090908"/>
+        <position y="208.18181818181816" x="49.09090909090908"/>
     </workflow-item>
     <workflow-item name="item9" out-name="item10" type="task" comparator="0">
         <display-name>Create Namespace</display-name>
@@ -632,11 +660,12 @@ if (httpData.statusCode != 200){&#13;
 if (namespace == null || namespace.trim().length == 0) {&#13;
   throw "Undefined namespace: namespace cannot be null or empty";&#13;
 }&#13;
-&#13;
+var namespaceDef = DynamicTypesManager.getNamespace(namespace);&#13;
 // Define namespace&#13;
-var namespaceDef = DynamicTypesManager.defineNamespace(namespace);&#13;
-&#13;
-System.log("Created dynamic namespace: " + namespaceDef);&#13;
+if (!namespaceDef){&#13;
+  namespaceDef = DynamicTypesManager.defineNamespace(namespace);&#13;
+  System.log("Created dynamic namespace: " + namespaceDef);&#13;
+} &#13;
 &#13;
 namespaceRef = namespaceDef;</script>
         <in-binding>
@@ -661,6 +690,7 @@ var iconResName = icon.getResourceElementCategory().path + "/" + icon.name;&#13;
 &#13;
 // Define type&#13;
 var typeDef = DynamicTypesManager.defineType(namespaceName, typeName, iconResName, typeProperties);&#13;
+&#13;
 if (typeDef == null) {&#13;
   throw "Failed to create dynamic type: " + namespaceName + "." + typeName;&#13;
 }&#13;
@@ -686,6 +716,143 @@ System.log("Created dynamic type: " + typeDef.name);&#13;
         <out-binding/>
         <description>Simple task with custom script capability.</description>
         <position y="62.72727272727272" x="340.0"/>
+    </workflow-item>
+    <workflow-item name="item11" out-name="item8" type="task" comparator="0">
+        <display-name>"day2" workflows</display-name>
+        <script encoded="false">//day2 template: 97026f5c-8eb0-484c-af86-cad0e8a06562&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+var wfid = "97026f5c-8eb0-484c-af86-cad0e8a06562"&#13;
+var request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
+    params: [wfid],&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Fetching Template Workflow via API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.get(request.path, request.params, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+&#13;
+var day2Ops = [];&#13;
+&#13;
+System.debug("Creating Workflows for Day 2 Operations...");&#13;
+var orig = httpData.contentAsString;&#13;
+&#13;
+for each(var op in Day2Operations){&#13;
+    request = null;&#13;
+&#13;
+    var wfContent = JSON.parse(orig);&#13;
+    &#13;
+    //System.debug(httpData.contentAsString);&#13;
+    var newWfName = op.Title + " - day2 - " + namespace + "." + typeName;&#13;
+    wfContent["display-name"] = newWfName;&#13;
+    var inputs = {"param":[]};&#13;
+    var presentation =  {"p-param": [] };&#13;
+&#13;
+    for each(var prop in op.Inputs){&#13;
+        inputs.param.push({"name":prop,"type":"string"});&#13;
+        presentation["p-param"].push({ "desc": prop, "name": prop});&#13;
+    }&#13;
+    &#13;
+    wfContent["input"] = inputs;&#13;
+    wfContent["presentation"] = presentation;&#13;
+    var newWfContent = {"name":newWfName, "schema-workflow":wfContent};&#13;
+&#13;
+    //POST https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows&#13;
+&#13;
+    request = {&#13;
+        path: '/vco-controlcenter/client/api/platform/workflows',&#13;
+        params: [],&#13;
+        content: newWfContent,&#13;
+        options: {&#13;
+            skipEncodeParams: true,	&#13;
+            returnResponseObject: true,		&#13;
+            returnResponseObjectForReal: false, 	&#13;
+            stringifyJsonContent: true,	&#13;
+            interpretResponseCode: false,	&#13;
+            headers: {&#13;
+                'Content-Type': 'application/json',&#13;
+                'Accept': 'application/json',&#13;
+                'Authorization': 'Bearer ' + token&#13;
+            },&#13;
+            errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+                numberOfRetries: 3,			//Number of retries&#13;
+                retryWaitInterval: 15,			//Polling interval in seconds&#13;
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+            }&#13;
+        }&#13;
+    };&#13;
+    System.debug("Creating new Workflow: " + newWfName);&#13;
+    System.debug("Payload for this workflow: " + JSON.stringify(newWfContent));&#13;
+    //var urlTemplate = "workflows/{id}";&#13;
+&#13;
+    var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+    if (httpData.statusCode != 201){&#13;
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+    }&#13;
+    System.debug(httpData.statusCode);&#13;
+&#13;
+    var wfRef = JSON.parse(httpData.contentAsString);&#13;
+    //Get the new WF ID:&#13;
+    var newId = wfRef.id;&#13;
+&#13;
+    System.debug("Tagging WF");&#13;
+    var newWf = Server.getWorkflowWithId(newId);&#13;
+&#13;
+    Server.tagGlobally(newWf, "achris", null);&#13;
+    Server.tagGlobally(newWf, namespace, typeName);&#13;
+&#13;
+    day2Ops.push({&#13;
+        "displayName": op.Title,&#13;
+        "name": op.Title,&#13;
+        "id": newId&#13;
+    });&#13;
+}&#13;
+&#13;
+System.debug("Done");&#13;
+&#13;
+day2opWorkflows = day2Ops;&#13;
+</script>
+        <in-binding>
+            <bind name="Day2Operations" type="Array/CompositeType(Title:string,Inputs:Array/string):Day2Operation" export-name="Day2Operations"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="token" type="string" export-name="token"/>
+        </in-binding>
+        <out-binding>
+            <bind name="day2opWorkflows" type="Any" export-name="day2opWorkflows"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="135.45454545454544" x="49.09090909090908"/>
     </workflow-item>
     <presentation/>
 </ns2:workflow>

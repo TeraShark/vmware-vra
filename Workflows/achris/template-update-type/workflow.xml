@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="2958b286-8078-410c-a87e-579ce001520e" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
-    <display-name>Update com.vmware.custom.foo.bar</display-name>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="7cfc353e-dbcd-4c4e-89b0-9b7014ea6f69" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>template-update-type</display-name>
     <description>Template</description>
     <position y="50.0" x="100.0"/>
     <input>
@@ -8,9 +8,7 @@
             <description>First input you will use to update an instance of your type. This would typically be something like an ID or Name. Add other inputs to facilitate the update of the relevant instance.</description>
         </param>
     </input>
-    <output>
-        <param name="result" type="DynamicTypes:com.vmware.custom.foo.bar"/>
-    </output>
+    <output/>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>

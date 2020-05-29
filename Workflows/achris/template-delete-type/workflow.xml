@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="f353840d-effa-4a5b-8b4f-f38050b103c0" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
-    <display-name>Delete com.vmware.custom.foo.bar</display-name>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="b00f7a8e-e4a7-4458-b374-8908026c1657" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>template-delete-type</display-name>
     <description>Template</description>
     <position y="50.0" x="100.0"/>
     <input>
-        <param name="id" type="string">
-            <description>First input you will use to delete an instance of your type. This would typically be a unique identifier related to an instance of your type.</description>
+        <param name="input_0" type="string">
+            <description>First input you will use to delete an instance of your type. This would typically be something like an ID or Name</description>
         </param>
     </input>
-    <output>
-        <param name="result" type="string"/>
-    </output>
+    <output/>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
