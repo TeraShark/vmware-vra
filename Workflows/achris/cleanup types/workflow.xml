@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item2" object-name="workflow:name=generic" id="3f4fe39c-5652-4498-bb83-269b112d1d49" editor-version="2.0" version="0.0.1" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item2" object-name="workflow:name=generic" id="3f4fe39c-5652-4498-bb83-269b112d1d49" editor-version="2.0" version="0.0.2" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
     <display-name>cleanup types</display-name>
     <position y="50.0" x="100.0"/>
     <input>
         <param name="typeName" type="string"/>
+        <param name="namespace" type="string"/>
     </input>
     <output/>
     <attrib name="token" type="string">
@@ -18,16 +19,25 @@
         <display-name>Clean up</display-name>
         <script encoded="false">DynamicTypesManager.removeAll();&#13;
 &#13;
-if (typeName.length &gt; 5){&#13;
+if (typeName.length &gt; 3){&#13;
     var ids = [];&#13;
     var wfs = Server.findAllForType("Workflow");&#13;
     for each(var wf in wfs){&#13;
         if (wf.name.indexOf(typeName)&gt;= 0){&#13;
-            System.debug(wf.id + "|" + wf.name);&#13;
+            System.debug("Found WF: " + wf.id + "|" + wf.name);&#13;
             ids.push(wf.id);&#13;
         }&#13;
     }&#13;
 }&#13;
+else{&#13;
+    throw "TypeName length &lt; 4 - possible danger!";&#13;
+}&#13;
+&#13;
+//Remove Configurations:&#13;
+try{&#13;
+    var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + typeName);&#13;
+    Server.removeConfigurationElementCategory(cat);&#13;
+} catch(e){ System.debug("Error deleting Configs: " + e.toString());}&#13;
 &#13;
 //delete each workflow:&#13;
 //https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/ac202aba-5d0c-4e54-8390-1fae9dff3ec9&#13;
@@ -78,6 +88,7 @@ for each(var id in ids){&#13;
         <in-binding>
             <bind name="typeName" type="string" export-name="typeName"/>
             <bind name="token" type="string" export-name="token"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
         </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>
