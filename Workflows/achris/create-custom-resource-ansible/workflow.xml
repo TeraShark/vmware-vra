@@ -1,0 +1,932 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item12" object-name="workflow:name=generic" id="a487f857-eb74-45de-9a25-67b460d5aa07" editor-version="2.0" version="0.0.5" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>create-custom-resource-ansible</display-name>
+    <description>Wrapper Workflow for Dynamic Types Creation for vRA</description>
+    <position y="50.0" x="90.90909090909092"/>
+    <input>
+        <param name="json" type="string"/>
+    </input>
+    <output/>
+    <attrib name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="token" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="wfid_update" type="string">
+        <value encoded="n">bb3b44ee-fe9c-43fa-a246-2d4d98c1a1d4</value>
+    </attrib>
+    <attrib name="wfid_create" type="string">
+        <value encoded="n">597baeeb-abfa-43e0-87ae-eaca6a4ef8d8</value>
+    </attrib>
+    <attrib name="wfid_delete" type="string">
+        <value encoded="n">aa71e7d6-22d8-42b9-9794-f52d0c43309f</value>
+    </attrib>
+    <attrib name="icon" type="ResourceElement">
+        <value encoded="n">dunes://service.dunes.ch/ResourceElement?id='ccc63028-0b79-48ad-bf8d-4078a2d058ce'&amp;dunesName='ResourceElement'</value>
+    </attrib>
+    <attrib name="workflowStubsCategory" type="WorkflowCategory">
+        <value encoded="n">dunes://service.dunes.ch/WorkflowCategory?id='8a74805971f49d72017219ad7dfe0273'&amp;dunesName='WorkflowCategory'</value>
+    </attrib>
+    <attrib name="day2opWorkflows" type="Any">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="typeProperties" type="Array/string">
+        <value encoded="n">[]</value>
+        <description>The names of the fields associated with your Dynamic Type</description>
+    </attrib>
+    <attrib name="namespace" type="string">
+        <value encoded="n"></value>
+        <description>eg: com.company.types</description>
+    </attrib>
+    <attrib name="typeName" type="string">
+        <value encoded="n"></value>
+        <description>Simple name for the type eg "redisDB". In workflows, this will be shown as [namespace].[typeName]. Eg com.company.customTypes.RedisDB</description>
+    </attrib>
+    <attrib name="Day2Operations" type="Any">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="ansiblePlaybooks" type="Any">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="ansibleServers" type="Any">
+        <value encoded="n"/>
+    </attrib>
+    <attrib name="configurations" type="Array/ConfigurationElement">
+        <value encoded="n">[]</value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="120.0" x="100.0"/>
+    </workflow-item>
+    <workflow-item name="item4" out-name="item5" type="task" comparator="0">
+        <display-name>Auth token</display-name>
+        <script encoded="false">&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+var request = {&#13;
+    path: '/csp/gateway/am/api/login?access_token=',&#13;
+    params: [],&#13;
+    content: JSON.stringify(requestContent),&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json'&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Calling API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+var access_token = JSON.parse(httpData.contentAsString).access_token;&#13;
+token = access_token;&#13;
+&#13;
+</script>
+        <in-binding/>
+        <out-binding>
+            <bind name="token" type="string" export-name="token"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="707.2727272727273"/>
+    </workflow-item>
+    <workflow-item name="item5" out-name="item6" type="task" comparator="0">
+        <display-name>"create" workflow</display-name>
+        <script encoded="false">//get workflow content to copy:&#13;
+//GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+var wfid = "8ebed660-d202-44c7-ad52-6eddb217c68b"&#13;
+var request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
+    params: [wfid],&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Fetching Template Workflow via API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.get(request.path, request.params, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+&#13;
+System.debug("Creating Workflow Copy");&#13;
+&#13;
+var wfContent = JSON.parse(httpData.contentAsString);&#13;
+//System.debug(wfContent);&#13;
+System.debug(JSON.stringify(wfContent));&#13;
+&#13;
+var newId = createGuid();&#13;
+//System.debug(httpData.contentAsString);&#13;
+var newWfName = "Create " + namespace + "." + typeName;&#13;
+wfContent["display-name"] = newWfName;&#13;
+var inputs = {"param":[]};&#13;
+var presentation =  {"p-param": [] };&#13;
+&#13;
+for each(var prop in typeProperties){&#13;
+    inputs.param.push({"name":prop,"type":"string"});&#13;
+    presentation["p-param"].push({ "desc": prop, "name": prop});&#13;
+}&#13;
+&#13;
+var outputs = {&#13;
+      "param": [&#13;
+        {&#13;
+          "name": "result",&#13;
+          "type": "DynamicTypes:" + namespace + "." + typeName&#13;
+        }&#13;
+      ]&#13;
+    };&#13;
+wfContent["id"] = newId;&#13;
+wfContent["output"] = outputs;&#13;
+wfContent["input"] = inputs;&#13;
+wfContent["presentation"] = presentation;&#13;
+var newWfContent = {"name":newWfName, "schema-workflow":wfContent};&#13;
+&#13;
+//POST https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows&#13;
+&#13;
+request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows',&#13;
+    params: [],&#13;
+    content: newWfContent,&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: true,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Creating new Workflow...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 201){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+System.debug(httpData.statusCode);&#13;
+&#13;
+var wfRef = JSON.parse(httpData.contentAsString);&#13;
+//Get the new WF ID:&#13;
+newId = wfRef.id;&#13;
+&#13;
+System.debug("Tagging WF");&#13;
+var newWf = Server.getWorkflowWithId(newId);&#13;
+var w = new Workflow();&#13;
+&#13;
+Server.tagGlobally(newWf, "achris", null);&#13;
+Server.tagGlobally(newWf, namespace, typeName);&#13;
+System.debug("Done");&#13;
+&#13;
+wfid_create = newId;&#13;
+&#13;
+function createGuid()  &#13;
+{  &#13;
+   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {  &#13;
+      var r = Math.random()*16|0, v = c === 'x' ? r : (r&amp;0x3|0x8);  &#13;
+      return v.toString(16);  &#13;
+   });  &#13;
+} </script>
+        <in-binding>
+            <bind name="token" type="string" export-name="token"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+        </in-binding>
+        <out-binding>
+            <bind name="wfid_create" type="string" export-name="wfid_create"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="130.0" x="707.2727272727273"/>
+    </workflow-item>
+    <workflow-item name="item6" out-name="item7" type="task" comparator="0">
+        <display-name>"update" workflow</display-name>
+        <script encoded="false">//get workflow content to copy:&#13;
+//GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+var wfid = "7cfc353e-dbcd-4c4e-89b0-9b7014ea6f69"&#13;
+var request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
+    params: [wfid],&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Fetching Template Workflow via API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.get(request.path, request.params, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+&#13;
+System.debug("Creating Workflow Copy");&#13;
+&#13;
+var wfContent = JSON.parse(httpData.contentAsString);&#13;
+//System.debug(wfContent);&#13;
+System.debug(JSON.stringify(wfContent));&#13;
+&#13;
+var newId = createGuid();&#13;
+//System.debug(httpData.contentAsString);&#13;
+var newWfName = "Update " + namespace + "." + typeName;&#13;
+wfContent["display-name"] = newWfName;&#13;
+var inputs = {"param":[]};&#13;
+var presentation =  {"p-param": [] };&#13;
+&#13;
+for each(var prop in typeProperties){&#13;
+    inputs.param.push({"name":prop,"type":"string"});&#13;
+    presentation["p-param"].push({ "desc": prop, "name": prop});&#13;
+}&#13;
+&#13;
+var outputs = {&#13;
+      "param": [&#13;
+        {&#13;
+          "name": "result",&#13;
+          "type": "DynamicTypes:" + namespace + "." + typeName&#13;
+        }&#13;
+      ]&#13;
+    };&#13;
+wfContent["id"] = newId;&#13;
+wfContent["output"] = outputs;&#13;
+wfContent["input"] = inputs;&#13;
+wfContent["presentation"] = presentation;&#13;
+&#13;
+var newWfContent = {"name":newWfName, "schema-workflow":wfContent};&#13;
+&#13;
+//POST https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows&#13;
+&#13;
+request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows',&#13;
+    params: [],&#13;
+    content: newWfContent,&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: true,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Creating new Workflow...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 201){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+System.debug(httpData.statusCode);&#13;
+&#13;
+var wfRef = JSON.parse(httpData.contentAsString);&#13;
+//Get the new WF ID:&#13;
+newId = wfRef.id;&#13;
+&#13;
+System.debug("Tagging WF");&#13;
+var newWf = Server.getWorkflowWithId(newId);&#13;
+var w = new Workflow();&#13;
+&#13;
+Server.tagGlobally(newWf, "achris", null);&#13;
+Server.tagGlobally(newWf, namespace, typeName);&#13;
+System.debug("Done");&#13;
+&#13;
+wfid_update = newId;&#13;
+&#13;
+function createGuid()  &#13;
+{  &#13;
+   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {  &#13;
+      var r = Math.random()*16|0, v = c === 'x' ? r : (r&amp;0x3|0x8);  &#13;
+      return v.toString(16);  &#13;
+   });  &#13;
+} </script>
+        <in-binding>
+            <bind name="token" type="string" export-name="token"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+        </in-binding>
+        <out-binding>
+            <bind name="wfid_update" type="string" export-name="wfid_update"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="130.0" x="580.0"/>
+    </workflow-item>
+    <workflow-item name="item7" out-name="item11" type="task" comparator="0">
+        <display-name>"delete" workflow</display-name>
+        <script encoded="false">//get workflow content to copy:&#13;
+//GET https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/78950e9c-43b3-436c-be75-c26a3da15dc9/content/&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+var wfid = "b00f7a8e-e4a7-4458-b374-8908026c1657"&#13;
+var request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
+    params: [wfid],&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Fetching Template Workflow via API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.get(request.path, request.params, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+&#13;
+System.debug("Creating Workflow Copy");&#13;
+&#13;
+var wfContent = JSON.parse(httpData.contentAsString);&#13;
+//System.debug(wfContent);&#13;
+System.debug(JSON.stringify(wfContent));&#13;
+&#13;
+var newId = createGuid();&#13;
+//System.debug(httpData.contentAsString);&#13;
+var newWfName = "Delete " + namespace + "." + typeName;&#13;
+wfContent["display-name"] = newWfName;&#13;
+var outputs = {&#13;
+      "param": [&#13;
+        {&#13;
+          "name": "result",&#13;
+          "type": "string"&#13;
+        }&#13;
+      ]&#13;
+    };&#13;
+wfContent["id"] = newId;&#13;
+wfContent["output"] = outputs;&#13;
+var newWfContent = {"name":newWfName, "schema-workflow":wfContent};&#13;
+&#13;
+//POST https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows&#13;
+&#13;
+request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows',&#13;
+    params: [],&#13;
+    content: newWfContent,&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: true,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Creating new Workflow...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 201){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+System.debug(httpData.statusCode);&#13;
+&#13;
+var wfRef = JSON.parse(httpData.contentAsString);&#13;
+//Get the new WF ID:&#13;
+newId = wfRef.id;&#13;
+&#13;
+System.debug("Tagging WF");&#13;
+var newWf = Server.getWorkflowWithId(newId);&#13;
+var w = new Workflow();&#13;
+&#13;
+Server.tagGlobally(newWf, "achris", null);&#13;
+Server.tagGlobally(newWf, namespace, typeName);&#13;
+System.debug("Done");&#13;
+&#13;
+wfid_delete = newId;&#13;
+&#13;
+function createGuid()  &#13;
+{  &#13;
+   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {  &#13;
+      var r = Math.random()*16|0, v = c === 'x' ? r : (r&amp;0x3|0x8);  &#13;
+      return v.toString(16);  &#13;
+   });  &#13;
+} </script>
+        <in-binding>
+            <bind name="token" type="string" export-name="token"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+        </in-binding>
+        <out-binding>
+            <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="130.0" x="452.72727272727275"/>
+    </workflow-item>
+    <workflow-item name="item8" out-name="item0" type="task" comparator="0">
+        <display-name>Create vRA Resource</display-name>
+        <script encoded="false">//https://cava-6-240-202.eng.vmware.com/form-service/api/custom/resource-types&#13;
+///form-service/api/custom/resource-types&#13;
+var payload = {&#13;
+  "displayName": typeName,&#13;
+  "description": namespace + "." + typeName,&#13;
+  "resourceType": "Custom." + typeName,&#13;
+  "externalType": "	DynamicTypes:" + namespace + "." + typeName,&#13;
+  "status": "RELEASED",&#13;
+  "properties": {&#13;
+    "type": "object",&#13;
+    "properties": {&#13;
+      "input_0": {&#13;
+        "type": "string",&#13;
+        "title": "First input for the creation of your custom type"&#13;
+      }&#13;
+    },&#13;
+    "required": [&#13;
+    ]&#13;
+  },&#13;
+  "additionalActions": [],&#13;
+  "mainActions": {&#13;
+    "create": {&#13;
+      "id": wfid_create,&#13;
+      "name": "Create " + namespace + "." + typeName,&#13;
+      "description": "Auto-generated Workflow",&#13;
+      "type": "vro.workflow",&#13;
+      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+    },&#13;
+    "update": {&#13;
+      "id": wfid_update,&#13;
+      "name": "Update " + namespace + "." + typeName,&#13;
+      "description": "Auto-generated Workflow",&#13;
+      "type": "vro.workflow",&#13;
+      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+    },&#13;
+    "delete": {&#13;
+      "id": wfid_delete,&#13;
+      "name": "Delete " + namespace + "." + typeName,&#13;
+      "description": "Auto-generated Workflow",&#13;
+      "type": "vro.workflow",&#13;
+      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+    }&#13;
+  }&#13;
+}&#13;
+&#13;
+var props = {};&#13;
+for each (var prop in typeProperties){&#13;
+    props[prop] = {&#13;
+        "type": "string",&#13;
+        "title": prop&#13;
+      };&#13;
+}&#13;
+&#13;
+payload.properties.properties = props;&#13;
+&#13;
+for each(var wf in day2opWorkflows){&#13;
+    payload.additionalActions.push({&#13;
+      "displayName": wf.displayName,&#13;
+      "name": wf.name,&#13;
+      "runnableItem": {&#13;
+        "id": wf.id,&#13;
+        "name": wf.name,&#13;
+        "description": wf.name,&#13;
+        "type": "vro.workflow",&#13;
+        "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"&#13;
+      }&#13;
+    });&#13;
+}&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+var request = {&#13;
+    path: '/form-service/api/custom/resource-types',&#13;
+    params: [],&#13;
+    content: payload,&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: true,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Creating Custom Resource via API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+</script>
+        <in-binding>
+            <bind name="token" type="string" export-name="token"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="wfid_create" type="string" export-name="wfid_create"/>
+            <bind name="wfid_update" type="string" export-name="wfid_update"/>
+            <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
+            <bind name="namespace" type="string" export-name="typeName"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+            <bind name="day2opWorkflows" type="Any" export-name="day2opWorkflows"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="130.0" x="187.27272727272725"/>
+    </workflow-item>
+    <workflow-item name="item9" out-name="item10" type="task" comparator="0">
+        <display-name>Create Namespace</display-name>
+        <script encoded="false">// Validate input values&#13;
+if (namespace == null || namespace.trim().length == 0) {&#13;
+  throw "Undefined namespace: namespace cannot be null or empty";&#13;
+}&#13;
+var namespaceDef = DynamicTypesManager.getNamespace(namespace);&#13;
+// Define namespace&#13;
+if (!namespaceDef){&#13;
+  namespaceDef = DynamicTypesManager.defineNamespace(namespace);&#13;
+  System.log("Created dynamic namespace: " + namespaceDef);&#13;
+} &#13;
+&#13;
+namespaceRef = namespaceDef;</script>
+        <in-binding>
+            <bind name="namespace" type="string" export-name="namespace"/>
+        </in-binding>
+        <out-binding>
+            <bind name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="452.72727272727275"/>
+    </workflow-item>
+    <workflow-item name="item10" out-name="item4" type="task" comparator="0">
+        <display-name>Create Type</display-name>
+        <script encoded="false">// Validate and post-process input values&#13;
+if (typeName == null || typeName.trim().length == 0) {&#13;
+  throw "Undefined type: type cannot be null or empty";&#13;
+}&#13;
+&#13;
+var namespaceName = namespaceRef.name;&#13;
+typeName = typeName.trim();&#13;
+var iconResName = icon.getResourceElementCategory().path + "/" + icon.name;&#13;
+&#13;
+// Define type&#13;
+var typeDef = DynamicTypesManager.defineType(namespaceName, typeName, iconResName, typeProperties);&#13;
+&#13;
+if (typeDef == null) {&#13;
+  throw "Failed to create dynamic type: " + namespaceName + "." + typeName;&#13;
+}&#13;
+&#13;
+// Setup finder methods&#13;
+&#13;
+System.log("Generating workflow stubs for dynamic type: " + typeDef);&#13;
+var ids = DynamicTypesManager.generateTypeFinderMethods(typeDef.namespace, typeDef.name, workflowStubsCategory);&#13;
+DynamicTypesManager.bindTypeFinderMethods(typeDef.namespace, typeDef.name, ids[0], ids[1], ids[2], ids[3]);&#13;
+&#13;
+&#13;
+System.log("Created dynamic type: " + typeDef.name);&#13;
+&#13;
+&#13;
+</script>
+        <in-binding>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+            <bind name="icon" type="ResourceElement" export-name="icon"/>
+            <bind name="workflowStubsCategory" type="WorkflowCategory" export-name="workflowStubsCategory"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="580.0"/>
+    </workflow-item>
+    <workflow-item name="item11" out-name="item8" type="task" comparator="0">
+        <display-name>"day2" workflows</display-name>
+        <script encoded="false">//day2 template: 97026f5c-8eb0-484c-af86-cad0e8a06562&#13;
+&#13;
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
+var endpointName = "vRA";&#13;
+var requestContent = {};&#13;
+requestContent.username = "configadmin";&#13;
+requestContent.password = "VMware1!";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
+var restClient = new RestClient(restHost);&#13;
+var wfid = "97026f5c-8eb0-484c-af86-cad0e8a06562"&#13;
+var request = {&#13;
+    path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
+    params: [wfid],&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer ' + token&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Fetching Template Workflow via API...");&#13;
+//var urlTemplate = "workflows/{id}";&#13;
+&#13;
+var httpData = restClient.get(request.path, request.params, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+&#13;
+var day2Ops = [];&#13;
+&#13;
+System.debug("Creating Workflows for Day 2 Operations...");&#13;
+var orig = httpData.contentAsString;&#13;
+&#13;
+for each(var op in Day2Operations){&#13;
+    request = null;&#13;
+&#13;
+    var wfContent = JSON.parse(orig);&#13;
+    &#13;
+    //System.debug(httpData.contentAsString);&#13;
+    var newWfName = op.Title + " - day2 - " + namespace + "." + typeName;&#13;
+    wfContent["display-name"] = newWfName;&#13;
+    var inputs = {"param":[]};&#13;
+    var presentation =  {"p-param": [] };&#13;
+&#13;
+    for each(var prop in op.Inputs){&#13;
+        inputs.param.push({"name":prop,"type":"string"});&#13;
+        presentation["p-param"].push({ "desc": prop, "name": prop});&#13;
+    }&#13;
+    &#13;
+    wfContent["input"] = inputs;&#13;
+    wfContent["presentation"] = presentation;&#13;
+    var newWfContent = {"name":newWfName, "schema-workflow":wfContent};&#13;
+&#13;
+    //POST https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows&#13;
+&#13;
+    request = {&#13;
+        path: '/vco-controlcenter/client/api/platform/workflows',&#13;
+        params: [],&#13;
+        content: newWfContent,&#13;
+        options: {&#13;
+            skipEncodeParams: true,	&#13;
+            returnResponseObject: true,		&#13;
+            returnResponseObjectForReal: false, 	&#13;
+            stringifyJsonContent: true,	&#13;
+            interpretResponseCode: false,	&#13;
+            headers: {&#13;
+                'Content-Type': 'application/json',&#13;
+                'Accept': 'application/json',&#13;
+                'Authorization': 'Bearer ' + token&#13;
+            },&#13;
+            errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+                numberOfRetries: 3,			//Number of retries&#13;
+                retryWaitInterval: 15,			//Polling interval in seconds&#13;
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+            }&#13;
+        }&#13;
+    };&#13;
+    System.debug("Creating new Workflow: " + newWfName);&#13;
+    System.debug("Payload for this workflow: " + JSON.stringify(newWfContent));&#13;
+    //var urlTemplate = "workflows/{id}";&#13;
+&#13;
+    var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+    if (httpData.statusCode != 201){&#13;
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+    }&#13;
+    System.debug(httpData.statusCode);&#13;
+&#13;
+    var wfRef = JSON.parse(httpData.contentAsString);&#13;
+    //Get the new WF ID:&#13;
+    var newId = wfRef.id;&#13;
+&#13;
+    System.debug("Tagging WF");&#13;
+    var newWf = Server.getWorkflowWithId(newId);&#13;
+&#13;
+    Server.tagGlobally(newWf, "achris", null);&#13;
+    Server.tagGlobally(newWf, namespace, typeName);&#13;
+&#13;
+    day2Ops.push({&#13;
+        "displayName": op.Title,&#13;
+        "name": op.Title,&#13;
+        "id": newId&#13;
+    });&#13;
+}&#13;
+&#13;
+System.debug("Done");&#13;
+&#13;
+day2opWorkflows = day2Ops;&#13;
+</script>
+        <in-binding>
+            <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="token" type="string" export-name="token"/>
+            <bind name="Day2Operations" type="Any" export-name="Day2Operations"/>
+        </in-binding>
+        <out-binding>
+            <bind name="day2opWorkflows" type="Any" export-name="day2opWorkflows"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="130.0" x="325.4545454545454"/>
+    </workflow-item>
+    <workflow-item name="item12" out-name="item13" type="task" comparator="0">
+        <display-name>parse JSON</display-name>
+        <script encoded="false">var payload = JSON.parse(json);&#13;
+&#13;
+namespace = payload.namespace;&#13;
+typeName = payload.typeName;&#13;
+typeProperties = payload.typeProperties;&#13;
+&#13;
+Day2Operations = payload.day2Operations;&#13;
+&#13;
+ansiblePlaybooks = payload.AnsiblePlaybooks;&#13;
+ansibleServers = payload.AnsibleServers;&#13;
+System.debug("Parsed JSON...");</script>
+        <in-binding>
+            <bind name="json" type="string" export-name="json"/>
+        </in-binding>
+        <out-binding>
+            <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+            <bind name="Day2Operations" type="Any" export-name="Day2Operations"/>
+            <bind name="ansiblePlaybooks" type="Any" export-name="ansiblePlaybooks"/>
+            <bind name="ansibleServers" type="Any" export-name="ansibleServers"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="187.27272727272725"/>
+    </workflow-item>
+    <workflow-item name="item13" out-name="item9" type="task" comparator="0">
+        <display-name>Create Configs</display-name>
+        <script encoded="false">var category = namespace + "." + typeName;&#13;
+&#13;
+System.debug("Iterating [" + ansibleServers.length + "] Servers...");&#13;
+for each(var server in ansibleServers){&#13;
+  var elem = Server.createConfigurationElement(category, server.EndpointName);&#13;
+  elem.setAttributeWithKey("host", server.host);&#13;
+  elem.setAttributeWithKey("username", server.username);&#13;
+  elem.setAttributeWithKey("password", server.password, "SecureString");&#13;
+&#13;
+}&#13;
+&#13;
+/*&#13;
+{&#13;
+        "DataCenterName": "USA-PROD",&#13;
+        "host": "https://ansible-01a.usaprod.corp.local",&#13;
+        "username": "root",&#13;
+        "password": "VMware1!"&#13;
+      }&#13;
+ */&#13;
+&#13;
+</script>
+        <in-binding>
+            <bind name="ansibleServers" type="Any" export-name="ansibleServers"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+        </in-binding>
+        <out-binding>
+            <bind name="configurations" type="Array/ConfigurationElement" export-name="configurations"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="320.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>
