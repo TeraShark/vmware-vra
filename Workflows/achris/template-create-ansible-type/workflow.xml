@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="597baeeb-abfa-43e0-87ae-eaca6a4ef8d8" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
-    <display-name>Create com.virtualnebula.types.redisDB</display-name>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="835e19d9-841d-4614-9d82-07fb5bdf4796" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>template-create-ansible-type</display-name>
     <description>Template</description>
     <position y="50.0" x="100.0"/>
     <input>
@@ -8,9 +8,7 @@
             <description>First input for the creation of your custom type</description>
         </param>
     </input>
-    <output>
-        <param name="result" type="DynamicTypes:com.virtualnebula.types.redisDB"/>
-    </output>
+    <output/>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>

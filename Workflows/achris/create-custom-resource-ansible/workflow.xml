@@ -131,7 +131,7 @@ requestContent.password = "VMware1!";&#13;
 &#13;
 var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
 var restClient = new RestClient(restHost);&#13;
-var wfid = "8ebed660-d202-44c7-ad52-6eddb217c68b"&#13;
+var wfid = "835e19d9-841d-4614-9d82-07fb5bdf4796"&#13;
 var request = {&#13;
     path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
     params: [wfid],&#13;
@@ -276,7 +276,7 @@ requestContent.password = "VMware1!";&#13;
 &#13;
 var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
 var restClient = new RestClient(restHost);&#13;
-var wfid = "7cfc353e-dbcd-4c4e-89b0-9b7014ea6f69"&#13;
+var wfid = "ba278d0a-039b-42b9-8ec8-1be385399cc6"&#13;
 var request = {&#13;
     path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
     params: [wfid],&#13;
@@ -422,7 +422,7 @@ requestContent.password = "VMware1!";&#13;
 &#13;
 var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
 var restClient = new RestClient(restHost);&#13;
-var wfid = "b00f7a8e-e4a7-4458-b374-8908026c1657"&#13;
+var wfid = "63f044cd-fc75-43c3-98ac-d60542083b30"&#13;
 var request = {&#13;
     path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
     params: [wfid],&#13;
@@ -547,7 +547,7 @@ var payload = {&#13;
   "displayName": typeName,&#13;
   "description": namespace + "." + typeName,&#13;
   "resourceType": "Custom." + typeName,&#13;
-  "externalType": "	DynamicTypes:" + namespace + "." + typeName,&#13;
+  "externalType": "DynamicTypes:" + namespace + "." + typeName,&#13;
   "status": "RELEASED",&#13;
   "properties": {&#13;
     "type": "object",&#13;
@@ -647,6 +647,7 @@ var request = {&#13;
 };&#13;
 System.debug("Creating Custom Resource via API...");&#13;
 //var urlTemplate = "workflows/{id}";&#13;
+System.debug(JSON.stringify(payload));&#13;
 &#13;
 var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
 if (httpData.statusCode != 200){&#13;
@@ -659,7 +660,7 @@ if (httpData.statusCode != 200){&#13;
             <bind name="wfid_create" type="string" export-name="wfid_create"/>
             <bind name="wfid_update" type="string" export-name="wfid_update"/>
             <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
-            <bind name="namespace" type="string" export-name="typeName"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
             <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
             <bind name="day2opWorkflows" type="Any" export-name="day2opWorkflows"/>
         </in-binding>
@@ -732,7 +733,7 @@ System.log("Created dynamic type: " + typeDef.name);&#13;
     </workflow-item>
     <workflow-item name="item11" out-name="item8" type="task" comparator="0">
         <display-name>"day2" workflows</display-name>
-        <script encoded="false">//day2 template: 97026f5c-8eb0-484c-af86-cad0e8a06562&#13;
+        <script encoded="false">//day2 template: b1ba4dbc-bdbe-496d-b351-4cd87f492694&#13;
 &#13;
 var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
 var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
@@ -745,7 +746,7 @@ requestContent.password = "VMware1!";&#13;
 &#13;
 var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
 var restClient = new RestClient(restHost);&#13;
-var wfid = "97026f5c-8eb0-484c-af86-cad0e8a06562"&#13;
+var wfid = "b1ba4dbc-bdbe-496d-b351-4cd87f492694"&#13;
 var request = {&#13;
     path: '/vco-controlcenter/client/api/platform/workflows/{wfid}/content/',&#13;
     params: [wfid],&#13;
@@ -786,12 +787,12 @@ for each(var op in Day2Operations){&#13;
     var wfContent = JSON.parse(orig);&#13;
     &#13;
     //System.debug(httpData.contentAsString);&#13;
-    var newWfName = op.Title + " - day2 - " + namespace + "." + typeName;&#13;
+    var newWfName = op.title + " - day2 - " + namespace + "." + typeName;&#13;
     wfContent["display-name"] = newWfName;&#13;
     var inputs = {"param":[]};&#13;
     var presentation =  {"p-param": [] };&#13;
 &#13;
-    for each(var prop in op.Inputs){&#13;
+    for each(var prop in op.inputs){&#13;
         inputs.param.push({"name":prop,"type":"string"});&#13;
         presentation["p-param"].push({ "desc": prop, "name": prop});&#13;
     }&#13;
@@ -845,8 +846,8 @@ for each(var op in Day2Operations){&#13;
     Server.tagGlobally(newWf, namespace, typeName);&#13;
 &#13;
     day2Ops.push({&#13;
-        "displayName": op.Title,&#13;
-        "name": op.Title,&#13;
+        "displayName": op.title,&#13;
+        "name": newWfName,&#13;
         "id": newId&#13;
     });&#13;
 }&#13;

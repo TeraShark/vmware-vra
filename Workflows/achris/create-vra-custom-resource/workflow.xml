@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item9" object-name="workflow:name=generic" id="78950e9c-43b3-436c-be75-c26a3da15dc9" editor-version="2.0" version="0.0.5" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
-    <display-name>create-vra-custom-type</display-name>
+    <display-name>create-vra-custom-resource</display-name>
     <description>Wrapper Workflow for Dynamic Types Creation for vRA</description>
     <position y="52.72727272727272" x="89.09090909090908"/>
     <input>
@@ -634,6 +634,8 @@ var request = {&#13;
 };&#13;
 System.debug("Creating Custom Resource via API...");&#13;
 //var urlTemplate = "workflows/{id}";&#13;
+&#13;
+System.debug(JSON.stringify(payload));&#13;
 &#13;
 var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
 if (httpData.statusCode != 200){&#13;

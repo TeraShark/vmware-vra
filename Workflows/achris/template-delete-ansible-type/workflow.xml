@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="63f044cd-fc75-43c3-98ac-d60542083b30" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>template-delete-ansible-type</display-name>
+    <description>Template</description>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="input_0" type="string">
+            <description>First input you will use to delete an instance of your type. This would typically be something like an ID or Name</description>
+        </param>
+    </input>
+    <output/>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="400.0"/>
+    </workflow-item>
+    <presentation/>
+    <workflow-note x="162.0" y="77.0" w="203.0" h="53.0" color="FFFFC0">
+        <description>Add your logic here to DELETE an existing instance of your type in the relevant system using REST / SOAP / SQL / SSH etc</description>
+    </workflow-note>
+</ns2:workflow>

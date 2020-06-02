@@ -1,1 +1,0 @@
-{"schema":{"inputProperties":{"id":"inputProperties","type":{"dataType":"reference","referenceType":"Any"},"label":"inputProperties","constraints":{"required":false}}},"layout":{"pages":[{"id":"page_bfb25nqh","title":"General","sections":[{"id":"section_54osjpng","fields":[{"id":"inputProperties","display":"textField","state":{"read-only":true}}]}]}]},"itemId":""}
