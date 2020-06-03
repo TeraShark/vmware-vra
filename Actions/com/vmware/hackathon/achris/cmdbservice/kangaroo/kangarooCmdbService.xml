@@ -6,7 +6,6 @@ var cmdbServiceBase = Class.load("com.vmware.hackathon.achris.cmdbservice",
 var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
 var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
 
-
 return Class.define(function kangarooCmdbService(){
 
     cmdbServiceBase.call(this);
