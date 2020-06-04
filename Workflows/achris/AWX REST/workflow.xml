@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="4753e09a-84c5-46a7-ab4a-dc7e93ecd5ad" editor-version="2.0" version="0.0.1" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>AWX REST</display-name>
+    <position y="50.0" x="100.0"/>
+    <input/>
+    <output/>
+    <attrib name="jobId" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="successful" type="boolean">
+        <value encoded="n">false</value>
+    </attrib>
+    <attrib name="responseContent" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="jsonData" type="string">
+        <value encoded="n">{"outputMapping": [         {           "typeReference": "CG",           "regExp": "(?:\\\"modify_cg\\\"\\s*:\\s*\\\")(.*?)(?:\\\")",           "regExpFlag": "i"         },         {           "typeReference": "metadata",           "regExp": "(...)",           "regExpFlag": "g"         }       ]}</value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="620.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item2" type="task" comparator="0">
+        <display-name>Launch Job</display-name>
+        <script encoded="false">var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+var endpointUrl = "http://10.149.88.129/";&#13;
+var endpointName = "AWX";&#13;
+var requestContent = { "extra_vars": {&#13;
+	"cg":"cg1"&#13;
+	}&#13;
+};&#13;
+&#13;
+var templateId = "9";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", ""); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+var request = {&#13;
+    path: '/api/v2/job_templates/{templateId}/launch/',&#13;
+    params: [templateId],&#13;
+    content: JSON.stringify(requestContent),&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer omnf3P1HVVfwEt8ut95ddPGE7HgQqF'&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Calling API...");&#13;
+&#13;
+var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+if (httpData.statusCode != 201){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+&#13;
+jobId = JSON.parse(httpData.contentAsString).id;&#13;
+&#13;
+</script>
+        <in-binding/>
+        <out-binding>
+            <bind name="jobId" type="string" export-name="jobId"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="180.0"/>
+    </workflow-item>
+    <workflow-item name="item2" out-name="item3" type="task" comparator="0">
+        <display-name>Get Status</display-name>
+        <script encoded="false">var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+&#13;
+&#13;
+var endpointUrl = "http://10.149.88.129/";&#13;
+var endpointName = "AWX";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", ""); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+var request = {&#13;
+    path: '/api/v2/jobs/{jobId}/',&#13;
+    params: [jobId],&#13;
+    //content: JSON.stringify(requestContent),&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Content-Type': 'application/json',&#13;
+            'Accept': 'application/json',&#13;
+            'Authorization': 'Bearer omnf3P1HVVfwEt8ut95ddPGE7HgQqF'&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Calling API for JobID [" + jobId + "]...");&#13;
+&#13;
+var status = "";&#13;
+var failed = false;&#13;
+while(status != "successful" &amp;&amp; failed == false){&#13;
+    System.sleep(5000);&#13;
+    var httpData = restClient.get(request.path, request.params, request.options);&#13;
+    if (httpData.statusCode != 200){&#13;
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+    }&#13;
+    //System.debug(httpData.contentAsString);&#13;
+&#13;
+    var json = JSON.parse(httpData.contentAsString);&#13;
+    &#13;
+    status = json.status;&#13;
+    failed = json.failed;&#13;
+&#13;
+    if(status != "successful" &amp;&amp; failed == false){&#13;
+        System.debug("Job still running. Checking again in 15s...");&#13;
+        System.sleep(10000);&#13;
+    }&#13;
+}&#13;
+System.debug("Job completed - Status: " + status + " | failed: " + failed);&#13;
+&#13;
+successful = !failed;&#13;
+</script>
+        <in-binding>
+            <bind name="jobId" type="string" export-name="jobId"/>
+        </in-binding>
+        <out-binding>
+            <bind name="successful" type="boolean" export-name="successful"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="280.0"/>
+    </workflow-item>
+    <workflow-item name="item3" out-name="item4" type="task" comparator="0">
+        <display-name>Output</display-name>
+        <script encoded="false">var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
+&#13;
+System.sleep(5000);&#13;
+&#13;
+var endpointUrl = "http://10.149.88.129/";&#13;
+var endpointName = "AWX";&#13;
+&#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", ""); &#13;
+var restClient = new RestClient(restHost);&#13;
+&#13;
+var request = {&#13;
+    path: '/api/v2/jobs/{jobId}/stdout/?format=txt',&#13;
+    params: [jobId],&#13;
+    //content: JSON.stringify(requestContent),&#13;
+    options: {&#13;
+        skipEncodeParams: true,	&#13;
+        returnResponseObject: true,		&#13;
+        returnResponseObjectForReal: false, 	&#13;
+        stringifyJsonContent: false,	&#13;
+        interpretResponseCode: false,	&#13;
+        headers: {&#13;
+            'Authorization': 'Bearer omnf3P1HVVfwEt8ut95ddPGE7HgQqF',&#13;
+            'Accept': 'text/plain; charset=utf-8'&#13;
+        },&#13;
+        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+            numberOfRetries: 3,			//Number of retries&#13;
+            retryWaitInterval: 15,			//Polling interval in seconds&#13;
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+        }&#13;
+    }&#13;
+};&#13;
+System.debug("Calling API for output of JobID [" + jobId + "]...");&#13;
+&#13;
+var httpData = restClient.get(request.path, request.params, request.options);&#13;
+if (httpData.statusCode != 200){&#13;
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+}&#13;
+responseContent = httpData.contentAsString;&#13;
+&#13;
+&#13;
+</script>
+        <in-binding>
+            <bind name="jobId" type="string" export-name="jobId"/>
+        </in-binding>
+        <out-binding>
+            <bind name="responseContent" type="string" export-name="responseContent"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="380.0"/>
+    </workflow-item>
+    <workflow-item name="item4" out-name="item0" type="task" comparator="0">
+        <display-name>Parse &amp; Assign</display-name>
+        <script encoded="false">System.debug(responseContent);&#13;
+&#13;
+&#13;
+//(?:\"modify_cg\"\s*:\s*\")(.*?)(?:\")&#13;
+&#13;
+/*{&#13;
+  "outputMapping": [&#13;
+  {&#13;
+    "typeReference": "CG",&#13;
+    "regExp": "(?:\\\"modify_cg\\\"\\s*:\\s*\\\")(.*?)(?:\\\")",&#13;
+    "regExpFlag": "i"&#13;
+  },&#13;
+  {&#13;
+    "typeReference": "metadata",&#13;
+    "regExp": "(...)",&#13;
+    "regExpFlag": "g"&#13;
+  }&#13;
+]&#13;
+}*/&#13;
+var mapping = JSON.parse(jsonData);&#13;
+var regexp = null;&#13;
+var result = "";&#13;
+System.debug("Iterating Mapping and Parsing Ansible output...");&#13;
+&#13;
+for each(var map in mapping.outputMapping){&#13;
+    System.debug("Mapping property: " + map.typeReference);&#13;
+    regexp = new RegExp(map.regExp, map.regExpFlag);&#13;
+    System.debug("RegExp: " + regexp.source + " | Flags: " + map.regExpFlag);&#13;
+&#13;
+    result = responseContent.match(regexp);&#13;
+    if (result &amp;&amp; result.length &gt; 1){&#13;
+        System.debug("Found value: " + result[1]);&#13;
+        System.debug(map.typeReference + ":" + result[1]);&#13;
+    }&#13;
+    else{&#13;
+        System.error("Expression returned no results");&#13;
+    }&#13;
+}&#13;
+&#13;
+&#13;
+&#13;
+/* Sample Text Output from stdout API call using stdout/?format=txt:&#13;
+&#13;
+ansible-playbook 2.9.7&#13;
+  config file = /etc/ansible/ansible.cfg&#13;
+  configured module search path = ['/var/lib/awx/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']&#13;
+  ansible python module location = /usr/lib/python3.6/site-packages/ansible&#13;
+  executable location = /usr/bin/ansible-playbook&#13;
+  python version = 3.6.8 (default, Nov 21 2019, 19:31:34) [GCC 8.3.1 20190507 (Red Hat 8.3.1-4)]&#13;
+Using /etc/ansible/ansible.cfg as config file&#13;
+host_list declined parsing /tmp/awx_43_0mf2d6pc/tmpytumrhaz as it did not pass its verify_file() method&#13;
+Parsed /tmp/awx_43_0mf2d6pc/tmpytumrhaz inventory source with script plugin&#13;
+&#13;
+PLAYBOOK: add_vm_to_existing_cg.yml ********************************************&#13;
+1 plays in ansible-migration/add_vm_to_existing_cg.yml&#13;
+&#13;
+PLAY [localhost] ***************************************************************&#13;
+META: ran handlers&#13;
+&#13;
+TASK [include_vars] ************************************************************&#13;
+task path: /tmp/awx_43_0mf2d6pc/project/ansible-migration/add_vm_to_existing_cg.yml:6&#13;
+ok: [localhost] =&gt; {&#13;
+    "ansible_facts": {&#13;
+        "adapterId": 1,&#13;
+        "api_version": "5_1",&#13;
+        "default_journal_size": 10,&#13;
+        "dnsServer": "192.168.2.2",&#13;
+        "domain": "vlab.local",&#13;
+        "endpoint": "vrpa1.vlab.local",&#13;
+        "gateway": "192.168.2.1",&#13;
+        "group_name": "cg1",&#13;
+        "modify_cg": "test_cg1",&#13;
+        "modify_vm": "Linux1",&#13;
+        "new_group_name": "test_0002",&#13;
+        "nicIndexInVC": 1,&#13;
+        "password": "Password123!",&#13;
+        "src_cluster_name": "RP4VMCloud1",&#13;
+        "src_vcenter": "vcenter.vlab.local",&#13;
+        "subnetMask": "255.255.255.0",&#13;
+        "targetIP": "192.168.2.200",&#13;
+        "target_cluster_name": "RP4VMCloud2",&#13;
+        "target_datastore": "NFS_Volumes",&#13;
+        "target_esxcluster": "Cloud2",&#13;
+        "target_vcenter": "vcenter.vlab.local",&#13;
+        "username": "admin",&#13;
+        "vm_name": "Linux1"&#13;
+    },&#13;
+    "ansible_included_var_files": [&#13;
+        "/tmp/awx_43_0mf2d6pc/project/ansible-migration/../ansible-rp4vm/vars.yml"&#13;
+    ],&#13;
+    "changed": false&#13;
+}&#13;
+&#13;
+TASK [include_tasks] ***********************************************************&#13;
+task path: /tmp/awx_43_0mf2d6pc/project/ansible-migration/add_vm_to_existing_cg.yml:8&#13;
+included: /tmp/awx_43_0mf2d6pc/project/ansible-rp4vm/update_cg_add_vm.yml for localhost&#13;
+&#13;
+TASK [include_tasks] ***********************************************************&#13;
+task path: /tmp/awx_43_0mf2d6pc/project/ansible-rp4vm/update_cg_add_vm.yml:3&#13;
+included: /tmp/awx_43_0mf2d6pc/project/ansible-migration/../ansible-rp4vm/tasks/token/get_token.yml for localhost&#13;
+&#13;
+TASK [b64_token] ***************************************************************&#13;
+task path: /tmp/awx_43_0mf2d6pc/project/ansible-rp4vm/tasks/token/get_token.yml:2&#13;
+&lt;localhost&gt; ESTABLISH SSH CONNECTION FOR USER: root&#13;
+&lt;localhost&gt; SSH: EXEC ssh -C -o ControlMaster=auto -o ControlPersist=60s -o StrictHostKeyChecking=no -o KbdInteractiveAuthentication=no -o PreferredAuthentications=gssapi-with-mic,gssapi-keyex,hostbased,publickey -o PasswordAuthentication=no -o 'User="root"' -o ConnectTimeout=10 -o ControlPath=/tmp/awx_43_0mf2d6pc/cp/72dc686b8e localhost '/bin/sh -c '"'"'echo ~root &amp;&amp; sleep 0'"'"''&#13;
+&lt;localhost&gt; (255, b'', b'ssh: connect to host localhost port 22: Network is unreachable\\r\\n')&#13;
+fatal: [localhost]: UNREACHABLE! =&gt; {&#13;
+    "changed": false,&#13;
+    "msg": "Failed to connect to the host via ssh: ssh: connect to host localhost port 22: Network is unreachable",&#13;
+    "unreachable": true&#13;
+}&#13;
+&#13;
+PLAY RECAP *********************************************************************&#13;
+localhost                  : ok=3    changed=0    unreachable=1    failed=0    skipped=0    rescued=0    ignored=0  &#13;
+*/&#13;
+</script>
+        <in-binding>
+            <bind name="responseContent" type="string" export-name="responseContent"/>
+            <bind name="successful" type="boolean" export-name="successful"/>
+            <bind name="jsonData" type="string" export-name="jsonData"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="480.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>
