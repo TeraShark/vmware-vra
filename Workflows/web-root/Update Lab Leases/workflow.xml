@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="21d8b66e-fbb9-426b-82df-42f93b9269a8" editor-version="2.0" version="0.0.2" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="21d8b66e-fbb9-426b-82df-42f93b9269a8" editor-version="2.0" version="0.0.3" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
     <display-name>Update Lab Leases</display-name>
     <position y="50.0" x="100.0"/>
     <input/>
@@ -337,7 +337,7 @@ var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
 var endpointUrl = "https://us08-1-vralb.oc.vmware.com";&#13;
 var endpointName = "vRA";&#13;
 var exp = new Date();&#13;
-exp.setDate(exp.getDate() + 4);&#13;
+exp.setDate(exp.getDate() + 5);&#13;
 var requestContent = {&#13;
     "type": "com.vmware.vcac.catalog.domain.request.CatalogResourceRequest",&#13;
     "resourceId": "17784e3d-80b6-4989-a52a-db0f68db6766",&#13;
@@ -411,7 +411,7 @@ var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
 var endpointUrl = "https://us08-1-vralb.oc.vmware.com";&#13;
 var endpointName = "vRA";&#13;
 var exp = new Date();&#13;
-exp.setDate(exp.getDate() + 4);&#13;
+exp.setDate(exp.getDate() + 5);&#13;
 var requestContent = {&#13;
     "type": "com.vmware.vcac.catalog.domain.request.CatalogResourceRequest",&#13;
     "resourceId": "fab37afc-38ac-4646-8d01-ec1f74ddfabf",&#13;
