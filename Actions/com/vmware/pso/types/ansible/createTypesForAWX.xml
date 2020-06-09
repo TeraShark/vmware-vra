@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="createTypesForAWX" result-type="Properties" api-version="6.0.0" id="f508349e-f1f6-46ef-8cf0-cf8d72088677" version="0.0.2" category-name="com.vmware.pso.types.ansible">
+  <param n="icon" t="ResourceElement"><![CDATA[]]></param>
+  <param n="namespaceDefinition" t="DynamicTypes:DynamicNamespaceDefinition"><![CDATA[]]></param>
+  <param n="json" t="Any"><![CDATA[The AWX-specific JSON payload object]]></param>
+  <script encoded="false"><![CDATA[var finderWorkflowIDs = new Properties;
+var namespaceName = namespaceDefinition.name;
+
+for each(var dynType in json.types){
+    createType(dynType, null, finderWorkflowIDs);
+}
+
+return finderWorkflowIDs;
+
+function createType(typeJson, parentTypeRef, finderWorkflowIDs){
+    var typeName = typeJson.typeName;
+    // Validate and post-process input values
+    if (typeName == null || typeName.trim().length == 0) {
+        throw "Undefined typeName: type cannot be null or empty";
+    }
+
+    typeName = typeName.trim();
+
+    var iconResName = icon.getResourceElementCategory().path + "/" + icon.name;
+
+    var folderDef = DynamicTypesManager.defineType(namespaceName, typeJson.containerName, iconResName, []);
+    var typeDef = DynamicTypesManager.defineType(namespaceName, typeName, iconResName, typeJson.typeProperties);
+
+    if (typeDef == null) {
+        throw "Failed to create dynamic type: " + namespaceName + "." + typeName;
+    }
+
+    // Set up finder workflows
+    System.log("Generating finder workflow stubs for dynamic type: " + typeName);
+
+    //Container:
+    var ids = DynamicTypesManager.generateTypeFinderMethods(typeDef.namespace, typeJson.containerName, workflowStubsCategory);
+    DynamicTypesManager.bindTypeFinderMethods(typeDef.namespace, typeJson.containerName, ids[0], ids[1], ids[2], ids[3]);
+    finderWorkflowIDs.put(typeJson.containerName, ids);
+    //TypeDef
+    ids = DynamicTypesManager.generateTypeFinderMethods(typeDef.namespace, typeName, workflowStubsCategory);
+    DynamicTypesManager.bindTypeFinderMethods(typeDef.namespace, typeName, ids[0], ids[1], ids[2], ids[3]);
+    finderWorkflowIDs.put(typeName, ids);
+
+    DynamicTypesManager.defineRelation(folderDef.id, typeDef.id, typeJson.containerName + "-" + typeName);
+    if (parentTypeRef != null){
+        //Define relation between parent object and this folder
+        DynamicTypesManager.defineRelation(parentTypeRef.id, folderDef.id, parentTypeRef.name + "-" + typeJson.containerName);
+    }
+
+    System.log("Created dynamic type: " + typeDef.name);
+    
+    if (typeRef.childTypes){
+        foreach(var child in typeRef.childTypes){
+            createType(child, typeJson);
+        }
+    }
+}
+]]></script>
+</dunes-script-module>
