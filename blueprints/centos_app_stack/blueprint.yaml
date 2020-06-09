@@ -1,23 +1,39 @@
 name: CentOS-Application-Stack
-version: 0.1
+version: 8.2
 formatVersion: 1
 inputs:
   vm_memory:
     type: integer
-    num:
-      - 512
+    enum:
+      - 8192
+      - 4096
+      - 2048
       - 1024
-environment:
-  type: string
-  title: Environment
+    default: 1024
+    title: Memory
+    minimum: 512
+    maximum: 8192
+  app_criticality:
+    type: integer
+    title: Criticality
+  environment:
+    type: string
+    title: Environment
+  clustername:
+    type: string
+    title: Cluster
+  datacenter:
+    type: string
+    title: Data Center
+    enum:
+      - DC01
+      - DC02
 resources:
-  Cloud_SecurityGroup_1:
-    type: Cloud.SecurityGroup
+  Cloud_vSphere_Disk_1:
+    type: Cloud.vSphere.Disk
     properties:
-      constraints:
-        - tag: application-sg
-      securityGroupType: existing
-  anisble_1:
+      capacityGb: '${input.vm_memory * 2}'
+  db_ansible:
     type: Cloud.Ansible
     properties:
       host: '${resource.db_svr.*}'
@@ -27,23 +43,30 @@ resources:
       password: VMware1!
       playbooks:
         provision:
-          - /etc/ansible/default.yml
+          - /etc/ansible/db_server.yml
       hostVariables: |
         target_host: localhost
         project: ${env.projectName}
+  Cloud_SecurityGroup_1:
+    type: Cloud.SecurityGroup
+    properties:
+      constraints:
+        - tag: application-sg
+      securityGroupType: existing
+      name: boo
   app_svr:
     type: Cloud.vSphere.Machine
     properties:
       image: centos
       cpuCount: 1
       totalMemoryMB: '${input.vm_memory}'
+      criticality: '${input.app_criticality}'
       networks:
         - network: '${resource.NSX_Default.id}'
           securityGroups:
             - '${resource.Cloud_SecurityGroup_1.id}'
       attachedDisks:
-        - source: ''
-      prop_1: ''
+        - source: '${resource.Cloud_vSphere_Disk_1.id}'
   db_svr:
     type: Cloud.vSphere.Machine
     properties:
@@ -55,8 +78,7 @@ resources:
           securityGroups:
             - '${resource.Cloud_SecurityGroup_2.id}'
       attachedDisks:
-        - source: ''
-      prop_1: ''
+        - source: '${resource.Cloud_vSphere_Disk_1.id}'
   Cloud_SecurityGroup_2:
     type: Cloud.SecurityGroup
     properties:
@@ -87,3 +109,15 @@ resources:
       constraints:
         - tag: web-sq
       securityGroupType: existing
+  web_ansible:
+    type: Cloud.Ansible
+    dependsOn:
+      - web_svr
+    properties:
+      host: '${resource.web_svr.*}'
+      osType: linux
+      account: '${if(input.environment == ""}'
+      username: ''
+      playbooks:
+        provision:
+          - /etc/ansible/web_server.yml
