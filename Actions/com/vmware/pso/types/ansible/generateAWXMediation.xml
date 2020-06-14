@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="generateAWXMediation" result-type="string" api-version="6.0.0" id="07c93e71-0fb8-4583-a79a-2522ffe5346a" version="0.0.2" category-name="com.vmware.pso.types.ansible">
+  <param n="icon" t="ResourceElement"><![CDATA[]]></param>
+  <param n="namespaceDefinition" t="DynamicTypes:DynamicNamespaceDefinition"><![CDATA[]]></param>
+  <param n="json" t="Any"><![CDATA[]]></param>
+  <param n="workflowStubsCategory" t="WorkflowCategory"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[var message = System.getModule("com.vmware.pso.types.ansible").createTypesForAWX(icon, namespaceDefinition, json, workflowStubsCategory);
+var token = System.getModule("com.vmware.pso.types.ansible").getvROAuthToken(json.vROServer);
+var typeWorkflows = [];
+
+var finderEvents = ["findRelations", "hasChildren", "findAll", "findById"];
+
+var baseTypeName = json.types[0].typeName;
+
+//Generate Container Action:
+generateContainerActions(json.types, token, typeWorkflows);
+
+//generate children for Containers:
+assignContainerRelations(json.types);
+
+
+function assignContainerRelations(siblings){
+    var uniqueContainers = new Properties();
+    siblings.forEach(function(sibling){
+        if(uniqueContainers.keys.indexOf(sibling.containerName) < 0){
+            uniqueContainers.put(sibling.containerName, [sibling.typeName]);
+        }else{
+            uniqueContainers[sibling.containerName].push(sibling.typeName);
+        }
+    });
+    //now map unique Containers to every child in the array:
+    
+    siblings.forEach(function(sibling){
+        sibling.containerChildTypeNames = uniqueContainers.get(sibling.containerName);
+        sibling.allChildTypeNames = [];
+        if(sibling.childTypes){
+            sibling.childTypes.forEach(function(child){
+                if(child.containerName != null & child.containerName.length > 0){
+                    if(sibling.allChildTypeNames.indexOf(child.containerName) < 0){
+                        sibling.allChildTypeNames.push(child.containerName);
+                    }
+                }
+                else{
+                    if(sibling.allChildTypeNames.indexOf(child.typeName) < 0){
+                        sibling.allChildTypeNames.push(child.typeName);
+                    }
+                }
+            });
+            assignContainerRelations(sibling.childTypes);
+        }
+    });
+    
+}
+
+json.types.forEach(function(_type){
+
+    //Generate mediator action:
+    generateMediatorAction(_type, token, typeWorkflows);
+    //Generate workflow:
+    //generateWorkflowsForType(_type, token, typeWorkflows);
+});
+
+
+var types = new Properties();
+
+
+typeWorkflows.forEach(function(typeWF){
+    //Only filter finder WFs: typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.typeName});
+    if (finderEvents.indexOf(typeWF.event) >= 0){
+        //If it exists, update the object:
+        if(types.keys.indexOf(typeWF.typeName) >= 0){
+            var obj = types[typeWF.typeName];
+            obj[typeWF.event] = typeWF.wfid;
+            types.remove(typeWF.typeName);
+            types.put(typeWF.typeName, obj);
+            System.debug("## Updated: " + JSON.stringify(obj));
+        }
+        else{
+            //create a new object:
+            var obj = {};
+            obj[typeWF.event] = typeWF.wfid;
+            types.put(typeWF.typeName, obj);
+            System.debug("## Added: " + JSON.stringify(obj));
+        }
+    }
+});
+
+types.keys.forEach(function (typeKey){
+    var obj = types[typeKey];
+    System.log("Binding TypeFinder Methods for " + typeKey);
+    System.debug("findById:" + obj.findById);
+    System.debug("findAll:" + obj.findAll);
+    System.debug("hasChildren:" + obj.hasChildren);
+    System.debug("findRelations:" + obj.findRelations);
+    //DynamicTypesManager.bindTypeFinderMethods()
+    DynamicTypesManager.bindTypeFinderMethods(namespaceDefinition.name, typeKey, obj.findById, obj.findAll, obj.hasChildren, obj.findRelations);
+});
+
+
+function generateContainerActions(types, token, typeWorkflows){
+    //Containers:
+    var actionIds = System.getModule("com.vmware.pso.types.ansible").generateAWXBaseFinderActions(token, json.vROServer, types, json.namespace);
+    System.debug("##### Generated Actions ######");
+    System.debug(JSON.stringify(actionIds));
+    actionIds.forEach(function(act){
+        typeWorkflows.push({"wfid": act.actionName, "event": act.reference.event, "typeName": act.reference.typeName});
+    });
+}
+
+function generateMediatorAction(typeJson, token, typeWorkflows){
+
+    System.debug("Generating 'Finder|Create|Update|Delete' Actions...");
+      
+    var actionId = System.getModule("com.vmware.pso.types.ansible").generateAWXMediatorAction(token,json.vROServer,typeJson,json.namespace);
+    System.debug("##### Generated Mediator Action ######");
+    System.debug(actionId);
+
+    if (typeJson.childTypes){
+        typeJson.childTypes.forEach(function(child){
+            child.parentType = typeJson.typeName;
+            child.parentTypeContainerName = typeJson.containerName;
+            generateMediatorAction(child, token, typeWorkflows);
+        });
+    }
+}
+
+function generateWorkflowsForType(typeJson, token, typeWorkflows){
+
+    var parent = {};
+    parent.isParent = true;
+    parent.isBaseType = false;
+    
+    //Primary CRUD Operations:
+    if (typeJson.AWXJobTemplates){
+        System.debug("Generating 'Finder|Create|Update|Delete' Workflows...");
+        typeJson.AWXJobTemplates.forEach(function(template){
+            var wfif = null;
+            if (wfid != null){
+                typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.typeName});
+                //duplicate entry for the container, if any:
+                if (typeJson.containerName != null && typeJson.containerName.length > 0){
+                    typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.containerName});
+                }
+            }
+        });
+    } else {
+        System.log("Skipping creation of 'Finder|Create|Update|Delete' Workflows for " + json.namespace + "." + typeJson.typeName + " - No AWXJobTemplates specified... ");
+    }
+
+    //Day 2 Operations:
+    System.debug("Generating Day2 Workflows...");
+    var day2Wfs = System.getModule("com.vmware.pso.types.ansible").generateAWXDay2Workflows(json.vROServer,typeJson,json.namespace,token);
+    day2Wfs.keys.forEach(function(key){
+        //typeWorkflows.put(newId, {"event": op.eventName, "typeName": typeJson.typeName});
+        typeWorkflows.push({"wfid": key, "event": day2Wfs[key].event, "typeName": day2Wfs[key].typeName});
+    });
+
+    //Children:
+    if (typeJson.childTypes){
+        typeJson.childTypes.forEach(function(child){
+            generateWorkflowsForType(child, token, typeWorkflows);
+        });
+    }
+}
+]]></script>
+</dunes-script-module>
