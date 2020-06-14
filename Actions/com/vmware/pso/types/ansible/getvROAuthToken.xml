@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="getvROAuthToken" result-type="string" api-version="6.0.0" id="b05966ea-0bfd-49ed-bb88-94f47028fc13" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+  <param n="vROServer" t="Any"><![CDATA[vRO Server Object from input JSON]]></param>
+  <script encoded="false"><![CDATA[
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+
+var endpointUrl = vROServer.FQDN;
+var endpointName = "vRO";
+var requestContent = {};
+requestContent.username = vROServer.adminUserName;
+requestContent.password = vROServer.adminPassword;
+
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); 
+var restClient = new RestClient(restHost);
+
+var request = {
+    path: '/csp/gateway/am/api/login?access_token=',
+    params: [],
+    content: JSON.stringify(requestContent),
+    options: {
+        skipEncodeParams: true,	
+        returnResponseObject: true,		
+        returnResponseObjectForReal: false, 	
+        stringifyJsonContent: false,	
+        interpretResponseCode: false,	
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        errorHandler: {					//Defines a retry mechanism in case of failed requests
+            numberOfRetries: 3,			//Number of retries
+            retryWaitInterval: 15,			//Polling interval in seconds
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+        }
+    }
+};
+System.debug("Calling API...");
+//var urlTemplate = "workflows/{id}";
+
+var httpData = restClient.post(request.path, request.params, request.content, request.options);
+if (httpData.statusCode != 200){
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;
+}
+var access_token = JSON.parse(httpData.contentAsString).access_token;
+return access_token;
+
+]]></script>
+</dunes-script-module>

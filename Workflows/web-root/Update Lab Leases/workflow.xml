@@ -274,7 +274,7 @@ var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
 &#13;
 var endpointUrl = "https://us08-1-vralb.oc.vmware.com";&#13;
 var endpointName = "vRA";&#13;
-var requestContent = {"username":"achris","password":"Liv16Bas1031!","tenant":"Cava"};&#13;
+var requestContent = {"username":"achris","password":"Bas1031Liv16!","tenant":"Cava"};&#13;
 &#13;
 &#13;
 var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", ""); &#13;

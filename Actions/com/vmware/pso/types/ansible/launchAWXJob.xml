@@ -1,0 +1,109 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="launchAWXJob" result-type="string" api-version="6.0.0" id="e4253830-ef75-4ecc-9c19-83f3bd740096" version="0.0.0" category-name="com.vmware.pso.types.ansible">
+  <param n="endpointName" t="string"><![CDATA[]]></param>
+  <param n="extra_vars" t="string"><![CDATA[]]></param>
+  <param n="templateId" t="string"><![CDATA[]]></param>
+  <param n="namespace" t="string"><![CDATA[]]></param>
+  <param n="typeName" t="string"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+System.debug("Fetching configs for [" + namespace + "]...");
+var cat = Server.getConfigurationElementCategoryWithPath(namespace + ".Endpoints");
+if (!cat){
+    throw "No Configurations found for " + namespace;
+}
+
+var endpointUrl = "";//"http://10.149.88.129/";
+var userName = "";
+var pwd = "";
+var authType = "";
+var authKey = "";
+
+var found = false;
+
+System.debug("Fetching Settings from configs...")
+try {
+    for each (var elem in cat.configurationElements){
+        if (elem.name == endpointName){
+            endpointUrl = parseConfig(elem.getAttributeWithKey("host"));
+            userName = parseConfig(elem.getAttributeWithKey("username"));
+            pwd = parseConfig(elem.getAttributeWithKey("password"));
+            authType = parseConfig(elem.getAttributeWithKey("authType"));
+            authKey = parseConfig(elem.getAttributeWithKey("authKey"));
+            found = true;
+            break;
+        }
+    }
+} catch(e){
+    throw "Missing Configuration values for EndPoint: " + endpointName;
+}
+
+if (!found){
+    throw "Configuration element for EndPoint [" + endpointName + "] not found.";
+}
+
+System.debug("Obtained required configurations...");
+
+var requestContent = {};
+try {
+    requestContent = JSON.parse(extra_vars);
+} catch(e){
+    throw "Invalid JSON payload";
+}
+
+System.debug("Initializing REST Host...");
+
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, userName, pwd); 
+var restClient = new RestClient(restHost);
+
+var _headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json' };
+
+ if (authType == "basic" && (!userName || userName.length == 0))
+    _headers.Authorization = "Basic " + authKey;
+else if (authType == "oauth")
+    _headers.Authorization = "Bearer " + authKey;
+
+//System.debug(JSON.stringify(_headers));
+
+System.debug("Building request object...");
+
+var request = {
+    path: '/api/v2/job_templates/{templateId}/launch/',
+    params: [templateId],
+    content: requestContent,
+    options: {
+        skipEncodeParams: true,	
+        returnResponseObject: true,		
+        returnResponseObjectForReal: false, 	
+        stringifyJsonContent: true,	
+        interpretResponseCode: false,	
+        headers: _headers,
+        errorHandler: {					//Defines a retry mechanism in case of failed requests
+            numberOfRetries: 3,			//Number of retries
+            retryWaitInterval: 15,			//Polling interval in seconds
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+        }
+    }
+};
+//System.debug(JSON.stringify(request.content));
+System.debug("Calling AWX API...");
+
+var httpData = restClient.post(request.path, request.params, request.content, request.options);
+if (httpData.statusCode != 201){
+    throw "Error calling AWX API. Received Status Code: " + httpData.statusCode;
+}
+var response = JSON.parse(httpData.contentAsString);
+System.debug("Launched Job Template ID [" + templateId + "] with Job ID: " + response.id)
+return response.id;
+
+function parseConfig(str){
+    if (!str)
+        throw "Missing Config Value";
+    if (str.value)
+        return str.value.toString();
+    return "";
+}]]></script>
+</dunes-script-module>

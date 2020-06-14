@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config-element id="ab6bce7d-fe94-46c0-b0ab-10db718ed9af" version="0.0.1">
+  <display-name><![CDATA[USA-QA]]></display-name>
+  <description><![CDATA[test]]></description>
+  <atts>
+    <att name="EndpointName" type="string" read-only="false">
+      <value encoded="n"><![CDATA[USA-QA]]></value>
+    </att>
+    <att name="host" type="string" read-only="false">
+      <value encoded="n"><![CDATA[http://10.149.88.129/]]></value>
+    </att>
+    <att name="username" type="string" read-only="false">
+      <value encoded="n"><![CDATA[ ]]></value>
+    </att>
+    <att name="password" type="SecureString" read-only="false">
+      <value encoded="n"><![CDATA[__NULL__]]></value>
+    </att>
+    <att name="authType" type="string" read-only="false">
+      <value encoded="n"><![CDATA[oauth]]></value>
+    </att>
+    <att name="authKey" type="SecureString" read-only="false">
+      <value encoded="n"><![CDATA[__NULL__]]></value>
+    </att>
+  </atts>
+</config-element>

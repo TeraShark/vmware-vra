@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='21d8b66e-fbb9-426b-82df-42f93b9269a8'&dunesName='Workflow']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='1109e3a5-db66-3a23-831c-1ffd8e21dab5'&dunesName='Action'&name='RestHostFactory'&category='com.vmware.pscoe.library.rest']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='c88b06bc-da81-3be5-bbb7-5a4522daa5f7'&dunesName='Action'&name='getLogger'&category='com.vmware.pscoe.library.logging']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='75f9b61c-abe0-316d-9c56-211d7aab4588'&dunesName='Action'&name='Logger'&category='com.vmware.pscoe.library.logging']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='616de355-a5ea-3f56-a582-5b801e404966'&dunesName='Action'&name='Class'&category='com.vmware.pscoe.library.class']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='d6d382dd-0d1b-34bf-870b-3b1751d5e0c1'&dunesName='Action'&name='waitForWorkflowToComplete'&category='com.vmware.pscoe.library.util']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='89266a1b-61b9-3dd6-a546-5aa5c90cf3a9'&dunesName='Action'&name='WorkflowTokenWrapper'&category='com.vmware.pscoe.library.util']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='961aee44-c2ea-3f7f-9cef-daf2e0bcb660'&dunesName='Action'&name='RestClient'&category='com.vmware.pscoe.library.rest']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='55f00eb6-1017-3c0e-a3aa-9345bb8a68f4'&dunesName='Action'&name='DefaultHostManagedAuth'&category='com.vmware.pscoe.library.rest.auth']]></elm>
+</package>

@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config-element id="d3ad7251-e3a6-47a5-854e-fb898f8d8acd" version="0.0.0">
+  <display-name><![CDATA[awx-lab]]></display-name>
+  <atts>
+    <att name="host" type="string" read-only="false">
+      <value encoded="n"><![CDATA[http://10.149.88.129]]></value>
+    </att>
+    <att name="username" type="string" read-only="false">
+      <value encoded="n"><![CDATA[]]></value>
+    </att>
+    <att name="password" type="SecureString" read-only="false"/>
+    <att name="authType" type="string" read-only="false">
+      <value encoded="n"><![CDATA[oauth]]></value>
+    </att>
+    <att name="authKey" type="string" read-only="false">
+      <value encoded="n"><![CDATA[omnf3P1HVVfwEt8ut95ddPGE7HgQqF]]></value>
+    </att>
+  </atts>
+</config-element>

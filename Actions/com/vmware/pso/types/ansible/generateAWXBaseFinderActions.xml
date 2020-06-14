@@ -1,0 +1,251 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="generateAWXBaseFinderActions" result-type="Any" api-version="6.0.0" id="101110ff-f8b0-4d5e-b733-8049ed8027f5" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+  <param n="token" t="string"><![CDATA[]]></param>
+  <param n="vROServer" t="Any"><![CDATA[]]></param>
+  <param n="types" t="Any"><![CDATA[]]></param>
+  <param n="namespace" t="string"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+var endpointUrl = vROServer.FQDN;
+var endpointName = "vRO";
+var requestContent = {};
+requestContent.username = vROServer.adminUserName;
+requestContent.password = vROServer.adminPassword;
+
+var returnObjs = [];
+var findEventNames = ["findAll", "findById", "hasChildren", "findRelations"];
+actionBucket = [];
+
+
+types.forEach(function (type) {
+    iterateTemplates(type);
+});
+
+function iterateTemplates(type) {
+
+    if (type.isBaseType == true) {
+        //first the base Type itself:
+        generateActionContent(type);
+        //Now the container for the base Type, if it exists (which is always should)
+        if (type.containerName != null && type.containerName.length > 0) {
+            var t = type;
+            t.childType = type.typeName;
+            t.typeName = type.containerName;
+            generateActionContent(t);
+        }
+    }
+    //This is a waste here (base Types will only be at the root level), 
+    //but I can use this logic later:
+    /*//Do the same for childTypes, iteratively:
+    if (type.childTypes) {
+        type.childTypes.forEach(function (child) {
+            iterateTemplates(child);
+        });
+    }*/
+
+}
+//System.debug(JSON.stringify(actionBucket));
+
+var actionName = "";
+
+actionBucket.sort(function (a, b) {
+    var nameA = a.eventName.toUpperCase(); // ignore upper and lowercase
+    var nameB = b.eventName.toUpperCase(); // ignore upper and lowercase
+    if (nameA < nameB) {
+        return -1;
+    }
+    if (nameA > nameB) {
+        return 1;
+    }
+    // names must be equal
+    return 0;
+});
+
+actionBucket.forEach(function (act) {
+    //only save a single action for each event:
+    var eventIndex = findEventNames.indexOf(act.eventName);
+    if (eventIndex >= 0) {
+        var wfRef = JSON.parse(saveAction(act.actionContent));
+        actionName = wfRef.fqn;
+        findEventNames.splice(eventIndex, 1);
+    }
+    //typeWorkflows.put(wfid, {"event": template.event, "typeName": typeJson.typeName});
+    //typeWorkflows.put(act.actionName, act.reference);
+    returnObjs.push({ "actionName": actionName, "reference": { "event": act.eventName, "typeName": act.typeName } });
+    //System.debug(JSON.stringify({ "actionName": actionName, "reference": { "event": act.eventName, "typeName": act.typeName } }));
+
+});
+
+
+System.debug("Done...");
+
+return returnObjs;
+
+function generateActionContent(typeObject) {
+
+    findEventNames.forEach(function (eventName) {
+        System.debug("Generating \"" + eventName + "\" Action for Base Type: " + typeObject.typeName);
+
+        var refObj = {};
+        refObj.inputs = [];
+        refObj.outputType = "";
+        refObj.contentScript = "";
+
+        setInAndOut(refObj, eventName, typeObject);
+
+        var wfContent = {
+            "output-type": refObj.outputType,
+            "name": eventName + "_TypeContainers",
+            "module": namespace,
+            "version": "0.0.1",
+            "fqn": namespace + "/" + eventName + "_TypeContainers",
+            "script": refObj.contentScript,
+            "bundleHasContent": false,
+            "runtimeMemoryLimit": 0,
+            "runtimeTimeout": 0,
+            "input-parameters": refObj.inputs
+        };
+
+        actionBucket.push({ "eventName": eventName, "typeName": typeObject.typeName, "actionContent": wfContent });
+
+    });
+}
+
+function createGuid() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+function setInAndOut(refObj, eventName, typeJSON) {
+    switch (eventName) {
+        case "findAll":
+            refObj.inputs = [
+                {
+                    "description": "object type",
+                    "name": "type",
+                    "type": "string"
+                }
+            ];
+            refObj.outputType = "Array/DynamicTypes:DynamicObject";
+            break;
+        case "findById":
+            refObj.inputs = [
+                {
+                    "description": "object type",
+                    "name": "type",
+                    "type": "string"
+                },
+                {
+                    "description": "object id",
+                    "name": "id",
+                    "type": "string"
+                }
+            ];
+            refObj.outputType = "DynamicTypes:" + namespace + "." + typeJSON.typeName;
+            break;
+        case "hasChildren":
+            refObj.inputs = [
+                {
+                    "description": "parent type",
+                    "name": "parentType",
+                    "type": "string"
+                },
+                {
+                    "description": "parent id",
+                    "name": "parentId",
+                    "type": "string"
+                },
+                {
+                    "description": "name of relation",
+                    "name": "relationName",
+                    "type": "string"
+                }
+            ];
+            refObj.outputType = "boolean";
+            refObj.contentScript = "return true;"
+            break;
+        case "findRelations":
+            refObj.inputs = [
+                {
+                    "description": "parent type",
+                    "name": "parentType",
+                    "type": "string"
+                },
+                {
+                    "description": "parent id",
+                    "name": "parentId",
+                    "type": "string"
+                },
+                {
+                    "description": "name of relation",
+                    "name": "relationName",
+                    "type": "string"
+                }
+            ];
+            refObj.outputType = "Array/DynamicTypes:DynamicObject";
+            refObj.contentScript = generateFindRelationsScript(typeJSON);
+            break;
+    }
+}
+
+function generateFindRelationsScript(typeJSON){
+    //Base Container Type:
+    var script = "var resultObjs = [];\nswitch (relationName) {\n    case \"namespace-children\":\n        resultObjs.push(DynamicTypesManager.makeObject(\"" + namespace + "\", \"" + typeJSON.containerName + "\", \"" + typeJSON.containerName + "\", \"" + typeJSON.containerName + "\"));\n        break;\n";
+    //Configs:
+      script += "case \"" + typeJSON.containerName + "-" + typeJSON.typeName + "\":\n        if (parentType == \"" + namespace + "." + typeJSON.containerName + "\") {\n            var configs = Server.getConfigurationElementCategoryWithPath(\"" + namespace + ".Endpoints\");\n            if (configs) {\n                var elems = configs.configurationElements;\n                elems.forEach(function (elem) {\n                    resultObjs.push(DynamicTypesManager.makeObject(\"" + namespace + "\", \"" + typeJSON.typeName + "\", elem.name + \"|#|\" + elem.name, elem.name));\n                });\n            }\n        }\n        break;\n";
+  
+    //add cases:
+    if(typeJSON.childTypes && typeJSON.childTypes.length > 0){
+        typeJSON.childTypes.forEach(function(child){
+            //resultObjs.push(DynamicTypesManager.makeObject(\"com.vmware.pso.ansible.RP4VM\", \"ConsistencyGroups\", \"ConsistencyGroups|#|\" + endpointId, \"ConsistencyGroups\"));
+            script += "    case \"" + typeJSON.typeName + "-" + child.containerName + "\":\n        var endpointId = parentId.split(\"|#|\")[1];\n        resultObjs.push(DynamicTypesManager.makeObject(\"" + namespace + "\", \"" + child.containerName + "\", \"" + child.containerName + "|#|\" + endpointId, \"" + child.containerName + "\"));\n        break;\n";
+        });
+    }
+ 
+    //end script
+    script += "}\n\nreturn resultObjs;";
+    return script;
+}
+
+function saveAction(actionContent) {
+    var request = {
+        path: '/vco-controlcenter/client/api/platform/actions?uniqueName=true',
+        params: [],
+        content: actionContent,
+        options: {
+            skipEncodeParams: true,
+            returnResponseObject: true,
+            returnResponseObjectForReal: false,
+            stringifyJsonContent: true,
+            interpretResponseCode: false,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            errorHandler: {					//Defines a retry mechanism in case of failed requests
+                numberOfRetries: 3,			//Number of retries
+                retryWaitInterval: 15,			//Polling interval in seconds
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+            }
+        }
+    };
+    System.debug("Creating new Action...");
+    //var urlTemplate = "workflows/{id}";
+    var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password);
+    var restClient = new RestClient(restHost);
+
+    var httpData = restClient.post(request.path, request.params, request.content, request.options);
+    if (httpData.statusCode != 201) {
+        System.debug(JSON.stringify(request));
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;
+    }
+    System.debug(httpData.statusCode);
+    return httpData.contentAsString;
+}
+]]></script>
+</dunes-script-module>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="835e19d9-841d-4614-9d82-07fb5bdf4796" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
-    <display-name>template-create-ansible-type</display-name>
+    <display-name>template-ansible-awx-type</display-name>
     <description>Template</description>
     <position y="50.0" x="100.0"/>
     <input>

@@ -1,0 +1,94 @@
+{
+  "namespaces" : [ {
+    "name" : "com.vmware.pso.ansible.RP4VM"
+  } ],
+  "types" : [ {
+    "name" : "ConsistencyGroup",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ "ID", "Name", "EndpointName", "metadata" ],
+    "findByIdBinding" : null,
+    "findAllBinding" : null,
+    "hasChildrenInRelationBinding" : null,
+    "findRelationBinding" : null,
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "Endpoint",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "1d7fac12-9fa2-4194-950d-b6dc6e112c87",
+    "findAllBinding" : "8ede7136-b6f4-43af-8fa4-1215fc2bb00e",
+    "hasChildrenInRelationBinding" : "f1348ee9-afd1-45e3-a2b3-1228a9226648",
+    "findRelationBinding" : "4f7725a4-977f-4213-8604-a92f0ca8b375",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "ConsistencyGroups",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "6afef90a-bc34-4c7f-ab10-6dfde759fdc5",
+    "findAllBinding" : "9e4e2bc4-ae2d-41b9-9426-c0355c8ed5d8",
+    "hasChildrenInRelationBinding" : "bbcb28d1-7803-45cc-92a5-ccc014d0c461",
+    "findRelationBinding" : "546f15b3-d9e6-4e32-b477-308868456cb7",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "RPVirtualMachines",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "0fe09516-589f-421b-a261-5c8926b84c8b",
+    "findAllBinding" : "9f538aa4-5e79-497d-b473-486af6fe7e32",
+    "hasChildrenInRelationBinding" : "895c29a6-2785-40c2-8065-17e31b15c9ba",
+    "findRelationBinding" : "758cfa9a-38ff-4377-b244-10cb0dd821d8",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "Endpoints",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "b3faedef-dc05-4ea9-a8bb-6fa16f1bdf26",
+    "findAllBinding" : "428ad220-4984-4951-accd-b6e5226488b8",
+    "hasChildrenInRelationBinding" : "ac58c0f2-95aa-46ea-9039-1fbaeae0bc09",
+    "findRelationBinding" : "6f32014e-e446-4568-a530-eb1a346f3722",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "RPVirtualMachine",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ "ID", "VMName", "ConsistencyGroup", "EndpointName", "Datacenter", "VMIP", "VMUUID", "Status", "metadata" ],
+    "findByIdBinding" : "521558cc-d494-4b91-b80f-0d673245ec45",
+    "findAllBinding" : "c07e8fc0-c6b4-4552-834d-85349f03d6ea",
+    "hasChildrenInRelationBinding" : "eb53f48b-a6cb-4515-8294-eb193dc4be37",
+    "findRelationBinding" : "90c2a586-7220-408c-9bb8-9e4855cf4a1a",
+    "custom_properties" : { },
+    "actions" : [ ]
+  } ],
+  "relations" : [ {
+    "name" : "ConsistencyGroup-RPVirtualMachines",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroup",
+    "childType" : "com.vmware.pso.ansible.RP4VM.RPVirtualMachines"
+  }, {
+    "name" : "RPVirtualMachines-RPVirtualMachine",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.RPVirtualMachines",
+    "childType" : "com.vmware.pso.ansible.RP4VM.RPVirtualMachine"
+  }, {
+    "name" : "ConsistencyGroups-ConsistencyGroup",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroups",
+    "childType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroup"
+  }, {
+    "name" : "Endpoint-ConsistencyGroups",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.Endpoint",
+    "childType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroups"
+  }, {
+    "name" : "Endpoints-Endpoint",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.Endpoints",
+    "childType" : "com.vmware.pso.ansible.RP4VM.Endpoint"
+  } ],
+  "internalId" : "0d8016c9-d006-444b-a0cf-9f3b5f1c06af"
+}

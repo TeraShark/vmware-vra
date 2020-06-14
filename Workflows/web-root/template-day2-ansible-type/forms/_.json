@@ -1,1 +1,0 @@
-{"schema":{"input_0":{"id":"input_0","type":{"dataType":"string"},"label":"input_0","constraints":{"required":false}}},"layout":{"pages":[{"id":"page_iwibefyo","title":"General","sections":[{"id":"section_5i91cg3l","fields":[{"id":"input_0","display":"textField"}]}]}]},"itemId":"","workflowId":"a788cd80-db0c-4957-b95d-5aac8659b310"}

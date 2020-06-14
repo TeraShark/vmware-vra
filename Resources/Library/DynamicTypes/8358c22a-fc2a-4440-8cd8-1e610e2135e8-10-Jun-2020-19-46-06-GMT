@@ -1,0 +1,94 @@
+{
+  "namespaces" : [ {
+    "name" : "com.vmware.pso.ansible.RP4VM"
+  } ],
+  "types" : [ {
+    "name" : "ConsistencyGroup",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ "ID", "Name", "EndpointName", "metadata" ],
+    "findByIdBinding" : "dfeaaa83-b4fe-48fb-af18-b3a2716f1848",
+    "findAllBinding" : "b4abd024-2cc5-4503-a64e-f306da907570",
+    "hasChildrenInRelationBinding" : "765f6195-09a8-4d38-bec2-33f7f41be75f",
+    "findRelationBinding" : "ca07bde8-009a-4707-bfe9-4a8aa002eb74",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "Endpoint",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "32d5e87e-4279-4baf-a7c6-2482a72ac49a",
+    "findAllBinding" : "3a9656e5-7fdd-469f-86cb-ce0853d353d4",
+    "hasChildrenInRelationBinding" : "93a8ea40-2a15-4c16-b3fd-8ec98dba4b10",
+    "findRelationBinding" : "bdd05ceb-63cc-40cd-b793-98fd8dfb82c2",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "ConsistencyGroups",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "bbce8b87-35a3-448d-b523-bd84bfce14ab",
+    "findAllBinding" : "23d49f7e-e43a-4519-a065-9556f33c0ec1",
+    "hasChildrenInRelationBinding" : "0bac17a1-21a9-4eb0-a8ac-35796e1a4901",
+    "findRelationBinding" : "ec303792-ddaa-4c86-92e9-2bd6aaa0909c",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "RPVirtualMachines",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "b2779c57-adf4-4b2c-b84f-96a5e3408ab2",
+    "findAllBinding" : "f57701a6-3a6b-46d7-aab4-c95e18a35a20",
+    "hasChildrenInRelationBinding" : "8984bbc4-0a8b-4d7d-a727-a5d5ef9eae95",
+    "findRelationBinding" : "b4131ae1-98c5-46b0-97d7-9cc36a645edc",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "Endpoints",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ ],
+    "findByIdBinding" : "d464eb25-e6fc-4d93-a566-bd4e5061ed1f",
+    "findAllBinding" : "b1619676-2d74-446a-a2f1-69a4f20c9897",
+    "hasChildrenInRelationBinding" : "a01434a5-3212-4f64-8137-a25887ee94f3",
+    "findRelationBinding" : "8af96a23-006f-45e8-95d8-f801c9f4352e",
+    "custom_properties" : { },
+    "actions" : [ ]
+  }, {
+    "name" : "RPVirtualMachine",
+    "namespace" : "com.vmware.pso.ansible.RP4VM",
+    "icon" : "Library/Configuration/_Icons/server.gif",
+    "properties" : [ "ID", "VMName", "ConsistencyGroup", "EndpointName", "Datacenter", "VMIP", "VMUUID", "Status", "metadata" ],
+    "findByIdBinding" : "e5a395f0-a40f-410e-889d-c94cea389e41",
+    "findAllBinding" : "504ef799-4daa-4e59-a74b-81e241f5581e",
+    "hasChildrenInRelationBinding" : "62fbd95c-a675-4005-8ddd-336c27756147",
+    "findRelationBinding" : "aec19c86-e7d3-445b-8d65-a63c385bc81c",
+    "custom_properties" : { },
+    "actions" : [ ]
+  } ],
+  "relations" : [ {
+    "name" : "ConsistencyGroup-RPVirtualMachines",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroup",
+    "childType" : "com.vmware.pso.ansible.RP4VM.RPVirtualMachines"
+  }, {
+    "name" : "RPVirtualMachines-RPVirtualMachine",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.RPVirtualMachines",
+    "childType" : "com.vmware.pso.ansible.RP4VM.RPVirtualMachine"
+  }, {
+    "name" : "ConsistencyGroups-ConsistencyGroup",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroups",
+    "childType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroup"
+  }, {
+    "name" : "Endpoint-ConsistencyGroups",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.Endpoint",
+    "childType" : "com.vmware.pso.ansible.RP4VM.ConsistencyGroups"
+  }, {
+    "name" : "Endpoints-Endpoint",
+    "parentType" : "com.vmware.pso.ansible.RP4VM.Endpoints",
+    "childType" : "com.vmware.pso.ansible.RP4VM.Endpoint"
+  } ],
+  "internalId" : "c8f2ecc9-1809-4334-b119-f2c8c02248bc"
+}

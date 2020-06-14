@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="getAWXJobOutput" result-type="string" api-version="6.0.0" id="63471bd9-7f43-4970-b26c-2bc93f1a1ee1" version="0.0.0" category-name="com.vmware.pso.types.ansible">
+  <param n="endpointName" t="string"><![CDATA[]]></param>
+  <param n="jobId" t="string"><![CDATA[]]></param>
+  <param n="namespace" t="string"><![CDATA[]]></param>
+  <param n="typeName" t="string"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+System.debug("Fetching configs for [" + namespace + "]...");
+var cat = Server.getConfigurationElementCategoryWithPath(namespace + ".Endpoints");
+if (!cat){
+    throw "No Configurations found for " + namespace;
+}
+
+var endpointUrl = "";//"http://10.149.88.129/";
+var userName = "";
+var pwd = "";
+var authType = "";
+var authKey = "";
+
+var found = false;
+
+System.debug("Fetching Settings from configs...")
+try {
+    for each (var elem in cat.configurationElements){
+        if (elem.name == endpointName){
+            endpointUrl = elem.getAttributeWithKey("host").value;
+            userName = elem.getAttributeWithKey("username").value;
+            pwd = elem.getAttributeWithKey("password").value;
+            authType = elem.getAttributeWithKey("authType").value;
+            authKey = elem.getAttributeWithKey("authKey").value;
+            found = true;
+            break;
+        }
+    }
+} catch(e){
+    throw "Missing Configuration values for EndPoint: " + endpointName;
+}
+
+System.debug("Obtained required configurations...");
+
+if (!found){
+    throw "Configuration element for EndPoint [" + endpointName + "] not found.";
+}
+
+System.debug("Initializing REST Host...");
+
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, userName, pwd); 
+var restClient = new RestClient(restHost);
+
+var _headers = {
+    'Accept': 'text/plain; charset=utf-8' };
+
+ if (authType == "basic" && (!userName || userName.length == 0))
+    _headers.Authorization = "Basic " + authKey;
+else if (authType == "oauth")
+    _headers.Authorization = "Bearer " + authKey;
+
+System.debug("Building request object...");
+
+var request = {
+    path: '/api/v2/jobs/{jobId}/stdout/?format=txt',
+    params: [jobId],
+    //content: JSON.stringify(requestContent),
+    options: {
+        skipEncodeParams: true,	
+        returnResponseObject: true,		
+        returnResponseObjectForReal: false, 	
+        stringifyJsonContent: false,	
+        interpretResponseCode: false,	
+        headers: _headers,
+        errorHandler: {					//Defines a retry mechanism in case of failed requests
+            numberOfRetries: 3,			//Number of retries
+            retryWaitInterval: 15,			//Polling interval in seconds
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+        }
+    }
+};
+System.debug("Calling API for output of JobID [" + jobId + "]...");
+
+var httpData = restClient.get(request.path, request.params, request.options);
+if (httpData.statusCode != 200){
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;
+}
+
+return httpData.contentAsString;
+
+
+
+
+
+]]></script>
+</dunes-script-module>
