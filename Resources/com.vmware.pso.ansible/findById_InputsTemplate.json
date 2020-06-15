@@ -1,0 +1,12 @@
+[
+    {
+        "description": "object type",
+        "name": "type",
+        "type": "string"
+    },
+    {
+        "description": "object id",
+        "name": "id",
+        "type": "string"
+    }
+]

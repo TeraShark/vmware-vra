@@ -1,0 +1,115 @@
+
+//========================== vars =====================
+var namespace = "";//get from type passed in
+var id = parentId;
+var parts = parentType.split(".");
+var typeName = parts.pop();
+namespace = parts.join(".");
+
+//what about findById and findAll? 
+//We only get a type to work with, so how will we define the endPoint on these?
+//maybe force an endPoint input for these actions?
+//######### fetch configs #################
+System.debug("Fetching configs for [" + namespace + "." + typeName + "]...");
+var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + typeName);
+if (!cat) {
+    throw "No Configurations found for " + namespace + "." + typeName;
+}
+
+var responseContent = "";
+var endpointName = "";//Glean from Id below
+var successful = false;
+var uniqueId = "";
+var jobId = "";
+
+var typeProperties = [];//from config
+var outputMapping = '[]';//from config
+var extra_vars = '[]';//from config
+var templateId = "";//from config
+var childTypes = [];
+var containerChildTypes = [];
+var result = [];
+
+
+var found = false;
+
+System.debug("Fetching Settings from configs...")
+try {
+    cat.configurationElements.forEach(function (elem) {
+        System.debug(elem.name);
+        if (!found) {
+            if (elem.name == "{{eventName}}") {
+                childTypes = JSON.parse(elem.getAttributeWithKey("childTypes").value);
+                containerChildTypes = JSON.parse(elem.getAttributeWithKey("containerChildTypes").value);
+                found = true;
+            }
+        }
+    });
+} catch (e) {
+    throw "Missing Configuration values for events for Type: " + typeName;
+}
+if (!found) {
+    throw "Missing Configuration values for events for Type: " + typeName;
+
+}
+
+childTypes.forEach(function (childTypeName) {
+    if (containerChildTypes.indexOf(childTypeName) >= 0) {
+        //This should return a default ObjArray[] such as:
+        switch (relationName) {
+            case "namespace-children":
+                result.push(DynamicTypesManager.makeObject(namespace, childTypeName, childTypeName, childTypeName));
+                break;
+            case typeName + "-" + childTypeName:
+                var endpointId = parentId.split("|#|")[1];
+                result.push(DynamicTypesManager.makeObject(namespace, childTypeName, childTypeName + "|#|" + endpointId, childTypeName));
+                break;
+        }
+    } else{
+
+    System.debug("Fetching child configs for [" + namespace + "." + childTypeName + "]...");
+    var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + childTypeName);
+    if (!cat) {
+        throw "No child Configurations found for " + namespace + "." + childTypeName;
+    }
+    found = false;
+    try {
+        cat.configurationElements.forEach(function (elem) {
+            //System.debug(elem.name);
+            if (!found) {
+                if (elem.name == "{{eventName}}") {
+                    typeProperties = JSON.parse(elem.getAttributeWithKey("typeProperties").value);
+                    outputMapping = elem.getAttributeWithKey("outputMapping").value;
+                    extra_vars = elem.getAttributeWithKey("extra_vars").value;
+                    templateId = elem.getAttributeWithKey("templateId").value;
+                    found = true;
+                }
+            }
+        });
+    } catch (e) {
+        throw "Missing Configuration values for events for Type: " + childTypeName;
+    }
+    if (!found) {
+        throw "Missing Configuration values for events for Type: " + childTypeName;
+
+    }
+
+    //######### prepare context #################
+    //|||||extravars_script|||||
+
+    //######### launch job #################
+    jobId = System.getModule("com.vmware.pso.types.ansible").launchAWXJob(endpointName, extra_vars, templateId, namespace, childTypeName);
+
+    //######### get job status  #################
+    successful = System.getModule("com.vmware.pso.types.ansible").getAWXJobStatus(endpointName, jobId, namespace, childTypeName);
+
+    //######### get job output  #################
+    responseContent = System.getModule("com.vmware.pso.types.ansible").getAWXJobOutput(endpointName, jobId, namespace, childTypeName);
+
+    //######### parse & assign  #################
+    //|||||parse_script|||||
+    }
+});
+System.debug(JSON.stringify(result));
+return result;
+

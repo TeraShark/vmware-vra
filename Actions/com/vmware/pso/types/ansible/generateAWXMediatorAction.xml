@@ -15,8 +15,10 @@ requestContent.username = vROServer.adminUserName;
 requestContent.password = vROServer.adminPassword;
 
 var returnObjs = [];
-var finderEventNames = [/*"findAll", "findById", "hasChildren",*/ "findRelations"];
+var finderEventNames = ["findAll", "findById", "hasChildren", "findRelations"];
+var cudEventNames = ["Create", "Update", "Delete"];
 var returnsMultiple = ["findRelations", "findAll"];
+var eventsWithIdInput = ["findById", "hasChildren", "findRelations"]; //and any other event specified in JSON
 
 var actionObjects = [];
 
@@ -26,9 +28,10 @@ iterateTemplates(typeJSON);
 function iterateTemplates(type) {
 
     if (type.isBaseType == null || type.isBaseType == false) {
-        //first the base Type itself:
+        //first the Type itself:
+        type.isContainer = false;
         generateActionContent(type);
-        //Now the container for the base Type, if it exists (which is always should)
+        //Now the container for the base Type, if it exists (which it always should)
         if (type.containerName != null && type.containerName.length > 0) {
             var t = type;
             t.childType = type.typeName;
@@ -54,7 +57,9 @@ return returnObjs;
 function generateActionContent(typeObject) {
 
     typeObject.AWXJobTemplates.forEach(function (template) {
-        if (finderEventNames.indexOf(template.event) >= 0) {
+        //ensure we only support the base event types here (Day2 or other Custom Events will be handled elsewhere)
+        //Also, don't generate CUD Actions for Containers:
+        if (finderEventNames.indexOf(template.event) >= 0 || ((typeObject.isContainer == null || typeObject.isContainer == false) && cudEventNames.indexOf(template.event) >= 0)) {
 
             System.debug("Generating \"" + template.event + "\" Action for Type: " + typeObject.typeName);
 
@@ -97,82 +102,76 @@ function createGuid() {
 function setInAndOut(refObj, AWXJobTemplate, typeJSON) {
     switch (AWXJobTemplate.event) {
         case "findAll":
-            refObj.inputs = [
-                {
-                    "description": "object type",
-                    "name": "type",
-                    "type": "string"
-                }
-            ];
+            refObj.inputs = JSON.parse(getResourceContent("findAll_InputsTemplate.json"));
             refObj.outputType = "Array/DynamicTypes:DynamicObject";
             break;
         case "findById":
-            refObj.inputs = [
-                {
-                    "description": "object type",
-                    "name": "type",
-                    "type": "string"
-                },
-                {
-                    "description": "object id",
-                    "name": "id",
-                    "type": "string"
-                }
-            ];
+            refObj.inputs = JSON.parse(getResourceContent("findById_InputsTemplate.json"));
             refObj.outputType = "DynamicTypes:" + namespace + "." + typeJSON.typeName;
             break;
         case "hasChildren":
-            refObj.inputs = [
-                {
-                    "description": "parent type",
-                    "name": "parentType",
-                    "type": "string"
-                },
-                {
-                    "description": "parent id",
-                    "name": "parentId",
-                    "type": "string"
-                },
-                {
-                    "description": "name of relation",
-                    "name": "relationName",
-                    "type": "string"
-                }
-            ];
+            refObj.inputs = JSON.parse(getResourceContent("hasChildren_InputsTemplate.json"));
             refObj.outputType = "boolean";
             refObj.contentScript = "return true;"
             break;
         case "findRelations":
-            refObj.inputs = [
-                {
-                    "description": "parent type",
-                    "name": "parentType",
-                    "type": "string"
-                },
-                {
-                    "description": "parent id",
-                    "name": "parentId",
-                    "type": "string"
-                },
-                {
-                    "description": "name of relation",
-                    "name": "relationName",
-                    "type": "string"
-                }
-            ];
+            refObj.inputs = JSON.parse(getResourceContent("findRelations_InputsTemplate.json"));
             refObj.outputType = "Array/DynamicTypes:DynamicObject";
             refObj.contentScript = generateFindRelationsScript(AWXJobTemplate);
             break;
+        default:
+            //This means it's not a finder event- we need to generate a different type of action:
+            refObj.inputs = [];
+            var addedId = false;
+            AWXJobTemplate.extra_vars.forEach(function (ev) {
+                if (ev.inputReference.toLowerCase() == "id") {
+                    addedId = true;
+                    refObj.inputs.push({ "description": ev.name, "name": "id", "type": "string" });
+                }
+
+                refObj.inputs.push({ "description": ev.name, "name": ev.inputReference, "type": "string" });
+            });
+            if (addedId == false && AWXJobTemplate.event.toLowerCase() != "create") {
+                refObj.inputs.push({ "description": "Mandatory Identifier for the type instance", "name": "id", "type": "string" });
+            } else {
+                refObj.inputs.push({ "description": "Mandatory Endpoint for the creation of the type instance", "name": "EndpointName", "type": "string" });
+            }
+            refObj.outputType = "DynamicTypes:DynamicObject";
+            refObj.contentScript = generateReturnScript(AWXJobTemplate, typeJSON);
+            break;
+
     }
 }
 
+function generateReturnScript(AWXJobTemplate, typeJSON) {
+    //"genericReturnScriptEscaped.txt"
+    var script = getResourceContent("genericReturnScript.txt");
+    script = script.replace(/{{eventName}}/g, AWXJobTemplate.event);
+    script = script.replace(/{{namespace}}/g, namespace);
+    script = script.replace(/{{typeName}}/g, typeJSON.typeName);
+    script = script.replace("//|||||extravars_script|||||", generateExtraVarsScript(AWXJobTemplate));
+    script = script.replace("//|||||parse_script|||||", generateParseScript(AWXJobTemplate.event));
+    return script;
+}
+
 function generateFindRelationsScript(AWXJobTemplate) {
-    //Base Container Type:
-    var script = "\n//========================== vars =====================\nvar namespace = \"\";//get from type passed in\nvar id = parentId;\nvar parts = parentType.split(\".\");\nvar typeName = parts.pop();\nnamespace = parts.join(\".\");\n\n//what about findById and findAll? \n//We only get a type to work with, so how will we define the endPoint on these?\n//maybe force an endPoint input for these actions?\n//######### fetch configs #################\nSystem.debug(\"Fetching configs for [\" + namespace + \".\" + typeName + \"]...\");\nvar cat = Server.getConfigurationElementCategoryWithPath(namespace + \".\" + typeName);\nif (!cat) {\n    throw \"No Configurations found for \" + namespace + \".\" + typeName;\n}\n\nvar responseContent = \"\";\nvar endpointName = \"\";//Glean from Id below\nvar successful = false;\nvar uniqueId = \"\";\nvar jobId = \"\";\n\nvar typeProperties = [\"Name\", \"metadata\"];//from config\nvar outputMapping = \'[]\';//from config\nvar extra_vars = \'[{\"name\":\"cg_id\",\"inputReference\":\"parentId\"}]\';//from config\nvar templateId = \"11\";//from config\nvar childTypes = [];\nvar result = [];\n\n\nvar found = false;\n\nSystem.debug(\"Fetching Settings from configs...\")\ntry {\n    cat.configurationElements.forEach(function (elem) {\n        System.debug(elem.name);\n        if (!found) {\n            if (elem.name == \"{{eventName}}\") {\n                childTypes = JSON.parse(elem.getAttributeWithKey(\"childTypes\").value);\n                found = true;\n            }\n        }\n    });\n} catch (e) {\n    throw \"Missing Configuration values for events for Type: \" + typeName;\n}\nif (!found) {\n    throw \"Missing Configuration values for events for Type: \" + typeName;\n\n}\n\nchildTypes.forEach(function (typeName) {\n\n    System.debug(\"Fetching child configs for [\" + namespace + \".\" + typeName + \"]...\");\n    var cat = Server.getConfigurationElementCategoryWithPath(namespace + \".\" + typeName);\n    if (!cat) {\n        throw \"No child Configurations found for \" + namespace + \".\" + typeName;\n    }\n    found = false;\n    try {\n        cat.configurationElements.forEach(function (elem) {\n            //System.debug(elem.name);\n            if (!found) {\n                if (elem.name == \"{{eventName}}\") {\n                    typeProperties = JSON.parse(elem.getAttributeWithKey(\"typeProperties\").value);\n                    outputMapping = elem.getAttributeWithKey(\"outputMapping\").value;\n                    extra_vars = elem.getAttributeWithKey(\"extra_vars\").value;\n                    templateId = elem.getAttributeWithKey(\"templateId\").value;\n                    found = true;\n                }\n            }\n        });\n    } catch (e) {\n        throw \"Missing Configuration values for events for Type: \" + typeName;\n    }\n    if (!found) {\n        throw \"Missing Configuration values for events for Type: \" + typeName;\n\n    }\n\n\n    //######### prepare context #################\n    //|||||extravars_script|||||\n\n    //######### launch job #################\n    jobId = System.getModule(\"com.vmware.pso.types.ansible\").launchAWXJob(endpointName, extra_vars, templateId, namespace, typeName);\n\n    //######### get job status  #################\n    successful = System.getModule(\"com.vmware.pso.types.ansible\").getAWXJobStatus(endpointName, jobId, namespace, typeName);\n\n    //######### get job output  #################\n    responseContent = System.getModule(\"com.vmware.pso.types.ansible\").getAWXJobOutput(endpointName, jobId, namespace, typeName);\n\n    //######### parse \& assign  #################\n   //|||||parse_script|||||\n\n});\nSystem.debug(JSON.stringify(result));\nreturn result;\n";
+    //This script returns multiple objects. If the relation is supposed to return a Container, a differenct script will be required.
+
+    var script = getResourceContent("findRelationsReturnScript.txt");
     script = script.replace(/{{eventName}}/g, AWXJobTemplate.event);
     script = script.replace("//|||||extravars_script|||||", generateExtraVarsScript(AWXJobTemplate));
     script = script.replace("//|||||parse_script|||||", generateParseScript(AWXJobTemplate.event));
     return script;
+}
+
+function getResourceContent(resourceName) {
+    var cat = Server.getResourceElementCategoryWithPath("com.vmware.pso.ansible");
+    for (var i = 0; i < cat.resourceElements.length; i++) {
+        if (cat.resourceElements[i].name == resourceName) {
+            return cat.resourceElements[i].getContentAsMimeAttachment().content;
+        }
+    }
+    return null;
 }
 
 function saveAction(actionContent) {
@@ -220,17 +219,21 @@ function generateExtraVarsScript(AWXJobTemplate) {
         extra_vars_script += 'evars.extra_vars.' + e.name + ' = ' + e.inputReference + ';\r\n';
     });
     extra_vars_script += "extra_vars = JSON.stringify(evars);\n";
-    if (AWXJobTemplate.event.toLowerCase() == "findrelations")
+    //only add this where we have an ID being passed in by default:
+    if (["update", "delete", "findrelations", "findbyid"].indexOf(AWXJobTemplate.event.toLowerCase()) >= 0)
         extra_vars_script += "//Get Endpoint and ID from input\nvar split = id.split(\"|#|\");\nif (split.length > 1){\n  endpointName = split[1];\n}\nuniqueId = split[0];\nSystem.debug(uniqueId);\nSystem.debug(endpointName);";
+
 
     return extra_vars_script;
 }
 
 function generateParseScript(eventName) {
-    var parseScript = "\nvar outputObj = DynamicTypesManager.makeObject(namespace, typeName, \"1\", typeName, typeProperties);\n\n\nvar regexp = null;\nvar result = \"\";\nSystem.debug(\"Iterating Mapping and Parsing Ansible output...\");\nvar mapping = JSON.parse(outputMapping);\nvar id = null;\nmapping.forEach(function(map){\n    System.debug(\"Mapping property: \" + map.typeReference);\n \n    regexp = new RegExp(map.regExp, map.regExpFlag);\n    System.debug(\"RegExp: \" + regexp.source + \" | Flags: \" + map.regExpFlag);\n\n    result = responseContent.match(regexp);\n    if (result \&\& result.length > 1){\n        System.debug(\"Found value: \" + result[1]);\n        System.debug(map.typeReference + \":\" + result[1]);\n        if(map.typeReference.toLowerCase() == \"id\")\n            id = result[1];\n        outputObj.setProperty(map.typeReference, result[1]);\n    }\n    else{\n        System.error(\"Expression returned no results\");\n    }\n});\n\nif(id != null)\n    outputObj.id = id + \"|#|\" + endpointName;\n    \nSystem.debug(\"object id: \" + outputObj.id);\n\nresult = outputObj;\n";
-
+    var parseScript = "";
+    
     if (returnsMultiple.indexOf(eventName) >= 0) {
-        parseScript = "\nvar allResults = [];\nvar outputObjs = [];\nvar regexp = null;\nvar regexResult = null;\nSystem.debug(\"Iterating Mappings and Parsing Ansible output...\");\nvar mapping = JSON.parse(outputMapping);\n\nvar result = [];\n\nSystem.debug(responseContent);\n\nmapping.forEach(function (map) {\n    System.debug(\"Mapping property: \" + map.typeReference);\n\n    regexp = new RegExp(map.regExp, map.regExpFlag);\n    System.debug(\"RegExp: \" + regexp.source + \" | Flags: \" + map.regExpFlag);\n\n    regexResult = [];\n    var ar;\n    while (ar = regexp.exec(responseContent)) {\n        //build an object by using the map name and the FIRST regex captured group:\n        var obj = {};\n        obj[map.typeReference] = ar.length > 0 ? ar[1] : null;\n        regexResult.push(obj);\n    };\n    allResults.push(regexResult);\n\n});\n\n\nvar mappedResults = [];\nvar columnIndex = 0;\n\nif (allResults.length > 0) {\n    allResults[0].forEach(function (results) {\n        var rowIndex = 0;\n        var newObj = {};\n        while (rowIndex < allResults.length \&\& columnIndex < allResults[rowIndex].length) {\n            var obj = allResults[rowIndex][columnIndex];\n            newObj[Object.keys(obj)[0]] = obj[Object.keys(obj)[0]];\n            rowIndex++;\n        }\n        columnIndex++;\n        mappedResults.push(newObj);\n    });\n}\n\nSystem.debug(JSON.stringify(mappedResults));\n\nmappedResults.forEach(function (output) {\n    var obj = DynamicTypesManager.makeObject(namespace, typeName, \"1\", typeName, []);\n    if (obj != null) {\n        System.debug(\"Instantiated new \" + typeName);\n        for (var i = 0; i < Object.keys(output).length; i++) {\n            obj.setProperty(Object.keys(output)[i], output[Object.keys(output)[i]]);\n            if (Object.keys(output)[i].toLowerCase() == \"id\")\n                obj.id = output[Object.keys(output)[i]] + \"|#|\" + endpointName;\n            if (Object.keys(output)[i].toLowerCase() == \"name\")\n                obj.name = output[Object.keys(output)[i]];\n        }\n        outputObjs.push(obj);\n    } else System.error(\"Instantiation of type [\" + namespace + \".\" + typeName + \"] returned null!\");\n});\n\nresult = outputObjs;\n";
+        parseScript = getResourceContent("parseScriptReturnMulti.txt"); 
+    } else {
+        parseScript = getResourceContent("parseScriptReturnSingle.txt.txt");
     }
 
     return parseScript;
@@ -247,11 +250,13 @@ function createConfigs(AWXJobTemplate, typeJSON) {
         elem.setAttributeWithKey("extra_vars", stringy(AWXJobTemplate.extra_vars));
         elem.setAttributeWithKey("templateId", AWXJobTemplate.templateId);
         if (typeJSON.isContainer == true) {
-            elem.setAttributeWithKey("childTypes", stringy(typeJSON.containerChildTypeNames));
+            elem.setAttributeWithKey("childTypes", stringy(typeJSON.siblingContainerTypeNames));
         }
         else {
             elem.setAttributeWithKey("childTypes", stringy(typeJSON.allChildTypeNames));
         }
+
+        elem.setAttributeWithKey("containerChildTypes", stringy(typeJSON.childContainerTypeNames));
 
 
         System.debug("Created Configuration for " + typeJSON.typeName + ":" + AWXJobTemplate.event);

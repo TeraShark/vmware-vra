@@ -1,0 +1,17 @@
+[
+    {
+        "description": "parent type",
+        "name": "parentType",
+        "type": "string"
+    },
+    {
+        "description": "parent id",
+        "name": "parentId",
+        "type": "string"
+    },
+    {
+        "description": "name of relation",
+        "name": "relationName",
+        "type": "string"
+    }
+]

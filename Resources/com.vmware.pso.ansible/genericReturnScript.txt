@@ -1,0 +1,76 @@
+
+//========================== vars =====================
+var namespace = "{{namespace}}";
+var typeName = "{{typeName}}";
+
+
+
+//######### fetch configs #################
+System.debug("Fetching configs for [" + namespace + "." + typeName + "]...");
+var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + typeName);
+if (!cat) {
+    throw "No Configurations found for " + namespace + "." + typeName;
+}
+
+var responseContent = "";
+var endpointName = "";//Glean from Id below
+var successful = false;
+var uniqueId = "";
+var jobId = "";
+
+//if the endpoint is part of the inputs, use it:
+if (EndpointName != null)
+    endpointName = EndpointName;
+
+var typeProperties = [];//from config
+var outputMapping = '[]';//from config
+var extra_vars = '[]';//from config
+var templateId = "";//from config
+var result = [];
+
+var childTypeName = typeName;
+
+var found = false;
+
+System.debug("Fetching Settings from configs...")
+
+try {
+    cat.configurationElements.forEach(function (elem) {
+        //System.debug(elem.name);
+        if (!found) {
+            if (elem.name == "{{eventName}}") {
+                typeProperties = JSON.parse(elem.getAttributeWithKey("typeProperties").value);
+                outputMapping = elem.getAttributeWithKey("outputMapping").value;
+                extra_vars = elem.getAttributeWithKey("extra_vars").value;
+                templateId = elem.getAttributeWithKey("templateId").value;
+                found = true;
+            }
+        }
+    });
+} catch (e) {
+    throw "Missing Configuration values for events for Type: " + childTypeName;
+}
+if (!found) {
+    throw "Missing Configuration values for events for Type: " + childTypeName;
+
+}
+
+//######### prepare context #################
+//|||||extravars_script|||||
+
+//######### launch job #################
+jobId = System.getModule("com.vmware.pso.types.ansible").launchAWXJob(endpointName, extra_vars, templateId, namespace, childTypeName);
+
+//######### get job status  #################
+successful = System.getModule("com.vmware.pso.types.ansible").getAWXJobStatus(endpointName, jobId, namespace, childTypeName);
+
+//######### get job output  #################
+responseContent = System.getModule("com.vmware.pso.types.ansible").getAWXJobOutput(endpointName, jobId, namespace, childTypeName);
+
+//######### parse & assign  #################
+//|||||parse_script|||||
+
+
+//System.debug(JSON.stringify(result));
+return result;
+

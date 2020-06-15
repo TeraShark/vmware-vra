@@ -31,13 +31,15 @@ function assignContainerRelations(siblings){
     //now map unique Containers to every child in the array:
     
     siblings.forEach(function(sibling){
-        sibling.containerChildTypeNames = uniqueContainers.get(sibling.containerName);
+        sibling.siblingContainerTypeNames = uniqueContainers.get(sibling.containerName);
         sibling.allChildTypeNames = [];
+        sibling.childContainerTypeNames = [];
         if(sibling.childTypes){
             sibling.childTypes.forEach(function(child){
                 if(child.containerName != null & child.containerName.length > 0){
                     if(sibling.allChildTypeNames.indexOf(child.containerName) < 0){
                         sibling.allChildTypeNames.push(child.containerName);
+                        sibling.childContainerTypeNames.push(child.containerName);
                     }
                 }
                 else{
@@ -134,7 +136,7 @@ function generateWorkflowsForType(typeJson, token, typeWorkflows){
     if (typeJson.AWXJobTemplates){
         System.debug("Generating 'Finder|Create|Update|Delete' Workflows...");
         typeJson.AWXJobTemplates.forEach(function(template){
-            var wfif = null;
+            var wfid = System.getModule("com.vmware.pso.types.ansible").generateAWXMediatorWorkflow(token,template,json.vROServer,typeJson,json.namespace, baseTypeName);
             if (wfid != null){
                 typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.typeName});
                 //duplicate entry for the container, if any:

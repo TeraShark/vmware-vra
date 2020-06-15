@@ -1,0 +1,7 @@
+[
+    {
+        "description": "object type",
+        "name": "type",
+        "type": "string"
+    }
+]
