@@ -59,135 +59,6 @@
         <out-binding/>
         <position y="110.0" x="120.0"/>
     </workflow-item>
-    <workflow-item name="item8" out-name="item0" type="task" comparator="0">
-        <display-name>Create vRA Resource</display-name>
-        <script encoded="false">//https://cava-6-240-202.eng.vmware.com/form-service/api/custom/resource-types
-///form-service/api/custom/resource-types
-var payload = {
-  "displayName": typeName,
-  "description": namespace + "." + typeName,
-  "resourceType": "Custom." + typeName,
-  "externalType": "DynamicTypes:" + namespace + "." + typeName,
-  "status": "RELEASED",
-  "properties": {
-    "type": "object",
-    "properties": {
-      "input_0": {
-        "type": "string",
-        "title": "First input for the creation of your custom type"
-      }
-    },
-    "required": [
-    ]
-  },
-  "additionalActions": [],
-  "mainActions": {
-    "create": {
-      "id": wfid_create,
-      "name": "Create " + namespace + "." + typeName,
-      "description": "Auto-generated Workflow",
-      "type": "vro.workflow",
-      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
-    },
-    "update": {
-      "id": wfid_update,
-      "name": "Update " + namespace + "." + typeName,
-      "description": "Auto-generated Workflow",
-      "type": "vro.workflow",
-      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
-    },
-    "delete": {
-      "id": wfid_delete,
-      "name": "Delete " + namespace + "." + typeName,
-      "description": "Auto-generated Workflow",
-      "type": "vro.workflow",
-      "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
-    }
-  }
-}
-
-var props = {};
-for each (var prop in typeProperties){
-    props[prop] = {
-        "type": "string",
-        "title": prop
-      };
-}
-
-payload.properties.properties = props;
-
-for each(var wf in day2opWorkflows){
-    payload.additionalActions.push({
-      "displayName": wf.displayName,
-      "name": wf.name,
-      "runnableItem": {
-        "id": wf.id,
-        "name": wf.name,
-        "description": wf.name,
-        "type": "vro.workflow",
-        "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
-      }
-    });
-}
-
-var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
-var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
-
-
-var endpointUrl = "https://cava-6-240-202.eng.vmware.com";
-var endpointName = "vRA";
-var requestContent = {};
-requestContent.username = "configadmin";
-requestContent.password = "VMware1!";
-
-var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); 
-var restClient = new RestClient(restHost);
-
-var request = {
-    path: '/form-service/api/custom/resource-types',
-    params: [],
-    content: payload,
-    options: {
-        skipEncodeParams: true,	
-        returnResponseObject: true,		
-        returnResponseObjectForReal: false, 	
-        stringifyJsonContent: true,	
-        interpretResponseCode: false,	
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': 'Bearer ' + token
-        },
-        errorHandler: {					//Defines a retry mechanism in case of failed requests
-            numberOfRetries: 3,			//Number of retries
-            retryWaitInterval: 15,			//Polling interval in seconds
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
-        }
-    }
-};
-System.debug("Creating Custom Resource via API...");
-//var urlTemplate = "workflows/{id}";
-System.debug(JSON.stringify(payload));
-
-var httpData = restClient.post(request.path, request.params, request.content, request.options);
-if (httpData.statusCode != 200){
-    throw "Error calling API. Received Status Code: " + httpData.statusCode;
-}
-</script>
-        <in-binding>
-            <bind name="token" type="string" export-name="token"/>
-            <bind name="typeName" type="string"/>
-            <bind name="wfid_create" type="string" export-name="wfid_create"/>
-            <bind name="wfid_update" type="string" export-name="wfid_update"/>
-            <bind name="wfid_delete" type="string" export-name="wfid_delete"/>
-            <bind name="namespace" type="string" export-name="namespace"/>
-            <bind name="typeProperties" type="Array/string"/>
-            <bind name="day2opWorkflows" type="Any" export-name="day2opWorkflows"/>
-        </in-binding>
-        <out-binding/>
-        <description>Simple task with custom script capability.</description>
-        <position y="170.0" x="180.0"/>
-    </workflow-item>
     <workflow-item name="item9" out-name="item15" type="task" comparator="0">
         <display-name>Create Namespace</display-name>
         <script encoded="false">// Validate input values
@@ -209,7 +80,7 @@ namespaceRef = namespaceDef;</script>
             <bind name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="420.0"/>
+        <position y="120.0" x="300.0"/>
     </workflow-item>
     <workflow-item name="item12" out-name="item13" type="task" comparator="0">
         <display-name>parse JSON</display-name>
@@ -345,63 +216,6 @@ function setParentTypes(types, parent){
         <description>Simple task with custom script capability.</description>
         <position y="60.0" x="300.0"/>
     </workflow-item>
-    <workflow-item name="item14" out-name="item8" type="task" comparator="0">
-        <display-name>vRA Auth Token</display-name>
-        <script encoded="false">
-var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
-var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
-
-
-var endpointUrl = vRAServer.FQDN;
-var endpointName = "vRA";
-var requestContent = {};
-requestContent.username = vRAServer.adminUserName;
-requestContent.password = vRAServer.adminPassword;
-
-var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); 
-var restClient = new RestClient(restHost);
-
-var request = {
-    path: '/csp/gateway/am/api/login?access_token=',
-    params: [],
-    content: JSON.stringify(requestContent),
-    options: {
-        skipEncodeParams: true,	
-        returnResponseObject: true,		
-        returnResponseObjectForReal: false, 	
-        stringifyJsonContent: false,	
-        interpretResponseCode: false,	
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        errorHandler: {					//Defines a retry mechanism in case of failed requests
-            numberOfRetries: 3,			//Number of retries
-            retryWaitInterval: 15,			//Polling interval in seconds
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
-        }
-    }
-};
-System.debug("Calling vRA API...");
-//var urlTemplate = "workflows/{id}";
-
-var httpData = restClient.post(request.path, request.params, request.content, request.options);
-if (httpData.statusCode != 200){
-    throw "Error calling API. Received Status Code: " + httpData.statusCode;
-}
-var access_token = JSON.parse(httpData.contentAsString).access_token;
-token = access_token;
-
-</script>
-        <in-binding>
-            <bind name="vRAServer" type="Any" export-name="vRAServer"/>
-        </in-binding>
-        <out-binding>
-            <bind name="token" type="string" export-name="token"/>
-        </out-binding>
-        <description>Simple task with custom script capability.</description>
-        <position y="170.0" x="300.0"/>
-    </workflow-item>
     <workflow-item name="item15" out-name="item0" type="task" script-module="com.vmware.pso.types.ansible/generateAWXMediation" comparator="0">
         <display-name>Do Magic Stuff</display-name>
         <script encoded="false">//Auto generated script, cannot be modified !
@@ -425,7 +239,7 @@ actionResult = System.getModule("com.vmware.pso.types.ansible").generateAWXMedia
             <bind name="actionResult" type="string" export-name="actionResult"/>
         </out-binding>
         <description>Add a note to the workflow schema.</description>
-        <position y="120.0" x="420.0"/>
+        <position y="120.0" x="180.0"/>
     </workflow-item>
     <presentation>
         <p-param name="json">

@@ -541,7 +541,7 @@ else {
 
         System.debug("Done");
 
-        typeWorkflows.put(newId, {"event": op.eventName, "typeName": typeJson.typeName});
+        typeWorkflows.put(newId, {"event": op.eventName, "typeName": typeJson.typeName, "pushTovRA": typeJson.pushTovRA, "wfName": wfRef.name});
 
     }
 }

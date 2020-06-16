@@ -1,0 +1,175 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="pushTypeTovRA" result-type="string" api-version="6.0.0" id="9c2f9bb3-76a9-4f46-9830-fad310efe52e" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+  <param n="vRAServer" t="Any"><![CDATA[]]></param>
+  <param n="typeWorkflows" t="Any"><![CDATA[]]></param>
+  <param n="token" t="string"><![CDATA[]]></param>
+  <param n="namespace" t="string"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[var published = [];
+//System.debug(JSON.stringify(typeWorkflows));
+typeWorkflows.forEach(function (typeWF) {
+    var typeKey = typeWF.typeName;
+    System.debug("Checking type " + typeKey);
+    if (typeWF.typeObject != null &&
+        typeWF.typeObject.pushTovRA == true &&
+        published.indexOf(typeKey) < 0) {
+
+        System.log("Preparing to push Type to vRA: " + typeKey);
+
+
+        var payload = {
+            "displayName": typeKey,
+            "description": namespace + "." + typeKey,
+            "resourceType": "Custom." + typeKey,
+            "externalType": "DynamicTypes:" + namespace + "." + typeKey,
+            "status": "RELEASED",
+            "properties": {
+                "type": "object",
+                "properties": {
+                    "input_0": {
+                        "type": "string",
+                        "title": "First input for the creation of your custom type"
+                    }
+                },
+                "required": []
+            },
+            "additionalActions": [],
+            "mainActions": {
+                "create": {
+                    "id": getWfID("Create", typeKey),
+                    "name": "Create " + namespace + "." + typeKey,
+                    "description": "Auto-generated Workflow",
+                    "type": "vro.workflow",
+                    "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
+                },
+                "update": getUpdateObject(typeKey, namespace),
+                "delete": {
+                    "id": getWfID("Delete", typeKey),
+                    "name": "Delete " + namespace + "." + typeKey,
+                    "description": "Auto-generated Workflow",
+                    "type": "vro.workflow",
+                    "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
+                }
+            }
+        }
+
+        var props = {};
+        if (typeWF.typeObject.typeProperties != null) {
+            typeWF.typeObject.typeProperties.forEach(function (prop) {
+                props[prop] = {
+                    "type": "string",
+                    "title": prop
+                };
+            });
+        }
+
+        payload.properties.properties = props;
+
+        //Iterate and add Day 2s:
+        System.debug("### Day2 ###");
+
+        //Day2 Items will be on the obj, but we need the event Names:
+        if (typeWF.typeObject.day2Operations != null) {
+            System.debug(JSON.stringify(typeWF.typeObject.day2Operations));
+
+            typeWF.typeObject.day2Operations.forEach(function (day2) {
+                //Now find the corresponding entry on the main stack of workflows, since we may have the wrong node:
+                try {
+                    typeWorkflows.forEach(function (child) {
+                        if (child.day2data != null &&
+                            child.day2data.event == day2.eventName &&
+                            child.typeName == typeWF.typeName) {
+
+                            System.debug(JSON.stringify(typeWF.day2data));
+                            payload.additionalActions.push({
+                                "displayName": day2.title,
+                                "name": child.day2data.wfName,
+                                "runnableItem": {
+                                    "id": child.day2data.wfid,
+                                    "name": child.day2data.wfName,
+                                    "description": child.day2data.wfName,
+                                    "type": "vro.workflow",
+                                    "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
+                                }
+                            });
+                            throw "found";
+                        }
+                    });
+                } catch(e){ }
+                //determine if this obj has any of the Day2 Event Names:
+            });
+        }
+
+        var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+        var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+        var endpointUrl = vRAServer.FQDN;
+        var endpointName = "vRO";
+        var requestContent = {};
+        requestContent.username = vRAServer.adminUserName;
+        requestContent.password = vRAServer.adminPassword;
+
+        var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password);
+        var restClient = new RestClient(restHost);
+
+        var request = {
+            path: '/form-service/api/custom/resource-types',
+            params: [],
+            content: payload,
+            options: {
+                skipEncodeParams: true,
+                returnResponseObject: true,
+                returnResponseObjectForReal: false,
+                stringifyJsonContent: true,
+                interpretResponseCode: false,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                errorHandler: {					//Defines a retry mechanism in case of failed requests
+                    numberOfRetries: 3,			//Number of retries
+                    retryWaitInterval: 15,			//Polling interval in seconds
+                    errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+                }
+            }
+        };
+        System.debug("Creating Custom Resource via API...");
+        //var urlTemplate = "workflows/{id}";
+        System.debug(JSON.stringify(payload));
+
+        var httpData = restClient.post(request.path, request.params, request.content, request.options);
+        if (httpData.statusCode != 200) {
+            throw "Error calling API. Received Status Code: " + httpData.statusCode;
+        }
+        System.debug("Pushed type [" + typeKey + "] to vRA...");
+        published.push(typeKey);
+    }
+});
+
+System.debug(JSON.stringify(published));
+
+//We run this sperately because the Update data is optional...
+function getUpdateObject(typeKey, namespace) {
+    var obj = {};
+    var id = getWfID("Update", typeKey);
+    if (id != null) {
+        obj = {
+            "id": id,
+            "name": "Update " + namespace + "." + typeKey,
+            "description": "Auto-generated Workflow",
+            "type": "vro.workflow",
+            "endpointLink": "/resources/endpoints/522d727b-54a9-49bc-93cc-6f5e0a8bdb98"
+        }
+    }
+    return obj;
+}
+
+function getWfID(event, typeName) {
+    for (var i = 0; i < typeWorkflows.length; i++) {
+        var tw = typeWorkflows[i];
+        if (tw.event == event && tw.typeName == typeName)
+            return tw.wfid;
+    }
+    return null;
+}]]></script>
+</dunes-script-module>

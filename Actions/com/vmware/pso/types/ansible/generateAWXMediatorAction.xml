@@ -16,7 +16,6 @@ requestContent.password = vROServer.adminPassword;
 
 var returnObjs = [];
 var finderEventNames = ["findAll", "findById", "hasChildren", "findRelations"];
-var cudEventNames = ["Create", "Update", "Delete"];
 var returnsMultiple = ["findRelations", "findAll"];
 var eventsWithIdInput = ["findById", "hasChildren", "findRelations"]; //and any other event specified in JSON
 
@@ -36,7 +35,6 @@ function iterateTemplates(type) {
             var t = type;
             t.childType = type.typeName;
             t.isContainer = true;
-            t.typeName = type.containerName;
             generateActionContent(t);
         }
     }
@@ -45,6 +43,7 @@ function iterateTemplates(type) {
 actionObjects.forEach(function (actionObject) {
     var wfRef = JSON.parse(saveAction(actionObject.actionContent));
     var actionName = wfRef.fqn;
+    //typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.typeName});
     returnObjs.push({ "actionName": actionName, "reference": { "event": actionObject.eventName, "typeName": actionObject.typeName } });
 });
 
@@ -57,11 +56,12 @@ return returnObjs;
 function generateActionContent(typeObject) {
 
     typeObject.AWXJobTemplates.forEach(function (template) {
-        //ensure we only support the base event types here (Day2 or other Custom Events will be handled elsewhere)
+        //ensure we only support the base event types here
         //Also, don't generate CUD Actions for Containers:
-        if (finderEventNames.indexOf(template.event) >= 0 || ((typeObject.isContainer == null || typeObject.isContainer == false) && cudEventNames.indexOf(template.event) >= 0)) {
+        var typeName = (typeObject.isContainer == true ? typeObject.containerName : typeObject.typeName);
+        if (finderEventNames.indexOf(template.event) >= 0) {
 
-            System.debug("Generating \"" + template.event + "\" Action for Type: " + typeObject.typeName);
+            System.debug("Generating \"" + template.event + "\" Action for Type: " + typeName);
 
             createConfigs(template, typeObject);
 
@@ -74,10 +74,10 @@ function generateActionContent(typeObject) {
 
             var wfContent = {
                 "output-type": refObj.outputType,
-                "name": template.event + "_" + typeObject.typeName,
+                "name": template.event + "_" + typeName,
                 "module": namespace,
                 "version": "0.0.1",
-                "fqn": namespace + "/" + template.event + "_" + typeObject.typeName,
+                "fqn": namespace + "/" + template.event + "_" + typeName,
                 "script": refObj.contentScript,
                 "bundleHasContent": false,
                 "runtimeMemoryLimit": 0,
@@ -85,7 +85,7 @@ function generateActionContent(typeObject) {
                 "input-parameters": refObj.inputs
             };
 
-            var actionObject = { "eventName": template.event, "typeName": typeObject.typeName, "actionContent": wfContent };
+            var actionObject = { "eventName": template.event, "typeName": typeName, "actionContent": wfContent };
             actionObjects.push(actionObject);
         }
 
@@ -100,6 +100,7 @@ function createGuid() {
 }
 
 function setInAndOut(refObj, AWXJobTemplate, typeJSON) {
+    var typeName = (typeJSON.isContainer == true ? typeJSON.containerName : typeJSON.typeName);
     switch (AWXJobTemplate.event) {
         case "findAll":
             refObj.inputs = JSON.parse(getResourceContent("findAll_InputsTemplate.json"));
@@ -107,48 +108,36 @@ function setInAndOut(refObj, AWXJobTemplate, typeJSON) {
             break;
         case "findById":
             refObj.inputs = JSON.parse(getResourceContent("findById_InputsTemplate.json"));
-            refObj.outputType = "DynamicTypes:" + namespace + "." + typeJSON.typeName;
+            refObj.outputType = "DynamicTypes:" + namespace + "." + typeName;
             break;
         case "hasChildren":
             refObj.inputs = JSON.parse(getResourceContent("hasChildren_InputsTemplate.json"));
             refObj.outputType = "boolean";
-            refObj.contentScript = "return true;"
+            if (typeJSON.isContainer == true) {
+                refObj.contentScript = "return true;"
+            }
+            else if (typeJSON.childTypes && typeJSON.childTypes.length > 0) {
+                refObj.contentScript = "return true;"
+            }
+            else {
+                refObj.contentScript = "return false;"
+            }
             break;
         case "findRelations":
             refObj.inputs = JSON.parse(getResourceContent("findRelations_InputsTemplate.json"));
             refObj.outputType = "Array/DynamicTypes:DynamicObject";
             refObj.contentScript = generateFindRelationsScript(AWXJobTemplate);
             break;
-        default:
-            //This means it's not a finder event- we need to generate a different type of action:
-            refObj.inputs = [];
-            var addedId = false;
-            AWXJobTemplate.extra_vars.forEach(function (ev) {
-                if (ev.inputReference.toLowerCase() == "id") {
-                    addedId = true;
-                    refObj.inputs.push({ "description": ev.name, "name": "id", "type": "string" });
-                }
-
-                refObj.inputs.push({ "description": ev.name, "name": ev.inputReference, "type": "string" });
-            });
-            if (addedId == false && AWXJobTemplate.event.toLowerCase() != "create") {
-                refObj.inputs.push({ "description": "Mandatory Identifier for the type instance", "name": "id", "type": "string" });
-            } else {
-                refObj.inputs.push({ "description": "Mandatory Endpoint for the creation of the type instance", "name": "EndpointName", "type": "string" });
-            }
-            refObj.outputType = "DynamicTypes:DynamicObject";
-            refObj.contentScript = generateReturnScript(AWXJobTemplate, typeJSON);
-            break;
-
     }
 }
 
 function generateReturnScript(AWXJobTemplate, typeJSON) {
+    var typeName = (typeJSON.isContainer == true ? typeJSON.containerName : typeJSON.typeName);
     //"genericReturnScriptEscaped.txt"
     var script = getResourceContent("genericReturnScript.txt");
     script = script.replace(/{{eventName}}/g, AWXJobTemplate.event);
     script = script.replace(/{{namespace}}/g, namespace);
-    script = script.replace(/{{typeName}}/g, typeJSON.typeName);
+    script = script.replace(/{{typeName}}/g, typeName);
     script = script.replace("//|||||extravars_script|||||", generateExtraVarsScript(AWXJobTemplate));
     script = script.replace("//|||||parse_script|||||", generateParseScript(AWXJobTemplate.event));
     return script;
@@ -165,7 +154,7 @@ function generateFindRelationsScript(AWXJobTemplate) {
 }
 
 function getResourceContent(resourceName) {
-    var cat = Server.getResourceElementCategoryWithPath("com.vmware.pso.ansible");
+    var cat = Server.getResourceElementCategoryWithPath("com.vmware.pso.types.ansible");
     for (var i = 0; i < cat.resourceElements.length; i++) {
         if (cat.resourceElements[i].name == resourceName) {
             return cat.resourceElements[i].getContentAsMimeAttachment().content;
@@ -203,7 +192,7 @@ function saveAction(actionContent) {
     var restClient = new RestClient(restHost);
 
     var httpData = restClient.post(request.path, request.params, request.content, request.options);
-    if (httpData.statusCode != 201) {
+    if (httpData.statusCode != 201 && httpData.statusCode != 200) {
         System.debug(JSON.stringify(request));
         throw "Error calling API. Received Status Code: " + httpData.statusCode;
     }
@@ -229,11 +218,11 @@ function generateExtraVarsScript(AWXJobTemplate) {
 
 function generateParseScript(eventName) {
     var parseScript = "";
-    
+
     if (returnsMultiple.indexOf(eventName) >= 0) {
-        parseScript = getResourceContent("parseScriptReturnMulti.txt"); 
+        parseScript = getResourceContent("parseScriptReturnMulti.txt");
     } else {
-        parseScript = getResourceContent("parseScriptReturnSingle.txt.txt");
+        parseScript = getResourceContent("parseScriptReturnSingle.txt");
     }
 
     return parseScript;
@@ -244,7 +233,8 @@ function createConfigs(AWXJobTemplate, typeJSON) {
 
     try {
 
-        var elem = Server.createConfigurationElement(namespace + "." + typeJSON.typeName, AWXJobTemplate.event);
+        var typeName = (typeJSON.isContainer == true ? typeJSON.containerName : typeJSON.typeName);
+        var elem = Server.createConfigurationElement(namespace + "." + typeName, AWXJobTemplate.event);
         elem.setAttributeWithKey("typeProperties", stringy(typeJSON.typeProperties));
         elem.setAttributeWithKey("outputMapping", stringy(AWXJobTemplate.outputMapping));
         elem.setAttributeWithKey("extra_vars", stringy(AWXJobTemplate.extra_vars));
@@ -259,7 +249,7 @@ function createConfigs(AWXJobTemplate, typeJSON) {
         elem.setAttributeWithKey("containerChildTypes", stringy(typeJSON.childContainerTypeNames));
 
 
-        System.debug("Created Configuration for " + typeJSON.typeName + ":" + AWXJobTemplate.event);
+        System.debug("Created Configuration for " + typeName+ ":" + AWXJobTemplate.event);
     }
     catch (e) {
         System.error("Unable to create Configuration: " + e.message);

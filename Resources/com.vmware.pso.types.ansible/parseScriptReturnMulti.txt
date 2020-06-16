@@ -1,0 +1,68 @@
+//======================= begin parse script ============================
+var allResults = [];
+var outputObjs = [];
+var regexp = null;
+var regexResult = null;
+System.debug("Iterating Mappings and Parsing Ansible output...");
+var mapping = JSON.parse(outputMapping);
+
+
+
+System.debug(responseContent);
+
+mapping.forEach(function (map) {
+    System.debug("Mapping property: " + map.typeReference);
+
+    regexp = new RegExp(map.regExp, map.regExpFlag);
+    System.debug("RegExp: " + regexp.source + " | Flags: " + map.regExpFlag);
+
+    regexResult = [];
+    var ar;
+    while (ar = regexp.exec(responseContent)) {
+        //build an object by using the map name and the FIRST regex captured group:
+        var obj = {};
+        obj[map.typeReference] = ar.length > 0 ? ar[1] : null;
+        regexResult.push(obj);
+    };
+    allResults.push(regexResult);
+
+});
+
+
+var mappedResults = [];
+var columnIndex = 0;
+
+if (allResults.length > 0) {
+    allResults[0].forEach(function (results) {
+        var rowIndex = 0;
+        var newObj = {};
+        while (rowIndex < allResults.length && columnIndex < allResults[rowIndex].length) {
+            var obj = allResults[rowIndex][columnIndex];
+            newObj[Object.keys(obj)[0]] = obj[Object.keys(obj)[0]];
+            rowIndex++;
+        }
+        columnIndex++;
+        mappedResults.push(newObj);
+    });
+}
+
+System.debug(JSON.stringify(mappedResults));
+
+mappedResults.forEach(function (output) {
+    var obj = DynamicTypesManager.makeObject(namespace, childTypeName, "1", childTypeName, []);
+    if (obj != null) {
+        System.debug("Instantiated new " + childTypeName);
+        for (var i = 0; i < Object.keys(output).length; i++) {
+            obj.setProperty(Object.keys(output)[i], output[Object.keys(output)[i]]);
+            if (Object.keys(output)[i].toLowerCase() == "id")
+                obj.id = output[Object.keys(output)[i]] + "|#|" + endpointName;
+            if (Object.keys(output)[i].toLowerCase() == "name")
+                obj.name = output[Object.keys(output)[i]];
+        }
+        outputObjs.push(obj);
+    } else System.error("Instantiation of type [" + namespace + "." + childTypeName + "] returned null!");
+});
+
+result = outputObjs;
+
+//======================= end parse script ============================

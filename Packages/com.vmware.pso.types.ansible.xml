@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='835e19d9-841d-4614-9d82-07fb5bdf4796'&dunesName='Workflow']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='a487f857-eb74-45de-9a25-67b460d5aa07'&dunesName='Workflow']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='07c93e71-0fb8-4583-a79a-2522ffe5346a'&dunesName='Action'&name='generateAWXMediation'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='f508349e-f1f6-46ef-8cf0-cf8d72088677'&dunesName='Action'&name='createTypesForAWX'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='b05966ea-0bfd-49ed-bb88-94f47028fc13'&dunesName='Action'&name='getvROAuthToken'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='1109e3a5-db66-3a23-831c-1ffd8e21dab5'&dunesName='Action'&name='RestHostFactory'&category='com.vmware.pscoe.library.rest']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='c88b06bc-da81-3be5-bbb7-5a4522daa5f7'&dunesName='Action'&name='getLogger'&category='com.vmware.pscoe.library.logging']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='75f9b61c-abe0-316d-9c56-211d7aab4588'&dunesName='Action'&name='Logger'&category='com.vmware.pscoe.library.logging']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='616de355-a5ea-3f56-a582-5b801e404966'&dunesName='Action'&name='Class'&category='com.vmware.pscoe.library.class']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='d6d382dd-0d1b-34bf-870b-3b1751d5e0c1'&dunesName='Action'&name='waitForWorkflowToComplete'&category='com.vmware.pscoe.library.util']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='89266a1b-61b9-3dd6-a546-5aa5c90cf3a9'&dunesName='Action'&name='WorkflowTokenWrapper'&category='com.vmware.pscoe.library.util']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='961aee44-c2ea-3f7f-9cef-daf2e0bcb660'&dunesName='Action'&name='RestClient'&category='com.vmware.pscoe.library.rest']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='55f00eb6-1017-3c0e-a3aa-9345bb8a68f4'&dunesName='Action'&name='DefaultHostManagedAuth'&category='com.vmware.pscoe.library.rest.auth']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='7f639b43-0ccd-40a4-9580-844cc1f280f2'&dunesName='Action'&name='getvRAAuthToken'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='9c2f9bb3-76a9-4f46-9830-fad310efe52e'&dunesName='Action'&name='pushTypeTovRA'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='101110ff-f8b0-4d5e-b733-8049ed8027f5'&dunesName='Action'&name='generateAWXBaseFinderActions'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='09e2a78f-7883-41d9-80f6-50c46e394dc9'&dunesName='Action'&name='generateAWXMediatorAction'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='d4d22b41-7099-47e8-97ad-9989bea8f7ee'&dunesName='Action'&name='generateAWXMediatorWorkflow'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='034a899a-f4fc-4f46-b010-887bb9d42167'&dunesName='Action'&name='generateAWXDay2Workflows'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='ccc63028-0b79-48ad-bf8d-4078a2d058ce'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='97026f5c-8eb0-484c-af86-cad0e8a06562'&dunesName='Workflow']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='3f4fe39c-5652-4498-bb83-269b112d1d49'&dunesName='Workflow']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='63471bd9-7f43-4970-b26c-2bc93f1a1ee1'&dunesName='Action'&name='getAWXJobOutput'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='a7e2087c-86bc-4e47-8345-ad475b85d15d'&dunesName='Action'&name='getAWXJobStatus'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='e4253830-ef75-4ecc-9c19-83f3bd740096'&dunesName='Action'&name='launchAWXJob'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='a4680baf-7ae6-4bb1-80e0-77416e04a5d6'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='787d2ca3-c4b3-4639-ada0-767d7171f944'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='6766f502-9e13-47c6-859b-7fcc8b7d61f3'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='7e7b5a91-117a-4aa5-b94a-65f329c0ade6'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='80659bb9-be4f-4103-8d09-b9239412ffaf'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='f1917959-360d-4b15-99e9-828309acd0e5'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='277c399a-5f01-4b93-8868-376d2123c64f'&dunesName='ResourceElement']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='9b4e6fd2-9f0d-44d8-943b-0a54f432f6f4'&dunesName='ResourceElement']]></elm>
+<used-plugin name='DynamicTypes' version='1.3.5' />
+</package>

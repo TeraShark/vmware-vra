@@ -59,32 +59,34 @@ json.types.forEach(function(_type){
     //Generate mediator action:
     generateMediatorAction(_type, token, typeWorkflows);
     //Generate workflow:
-    //generateWorkflowsForType(_type, token, typeWorkflows);
+    generateWorkflowsForType(_type, token, typeWorkflows);
 });
 
 
 var types = new Properties();
 
+//System.debug(JSON.stringify(typeWorkflows));
 
 typeWorkflows.forEach(function(typeWF){
-    //Only filter finder WFs: typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.typeName});
-    if (finderEvents.indexOf(typeWF.event) >= 0){
-        //If it exists, update the object:
-        if(types.keys.indexOf(typeWF.typeName) >= 0){
-            var obj = types[typeWF.typeName];
-            obj[typeWF.event] = typeWF.wfid;
-            types.remove(typeWF.typeName);
-            types.put(typeWF.typeName, obj);
-            System.debug("## Updated: " + JSON.stringify(obj));
-        }
-        else{
-            //create a new object:
-            var obj = {};
-            obj[typeWF.event] = typeWF.wfid;
-            types.put(typeWF.typeName, obj);
-            System.debug("## Added: " + JSON.stringify(obj));
-        }
+    //finder WFs: typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.typeName});
+    
+    //If it exists, update the object:
+    if(types.keys.indexOf(typeWF.typeName) >= 0){
+        var obj = types[typeWF.typeName];
+        obj.typeName = typeWF.typeName;
+        obj[typeWF.event] = typeWF.wfid;
+        types.remove(typeWF.typeName);
+        types.put(typeWF.typeName, obj);
+        System.debug("## Updated: " + JSON.stringify(obj));
     }
+    else{
+        //create a new object:
+        var obj = {};
+        obj[typeWF.event] = typeWF.wfid;
+        types.put(typeWF.typeName, obj);
+        System.debug("## Added: " + JSON.stringify(obj));
+    }
+    
 });
 
 types.keys.forEach(function (typeKey){
@@ -97,6 +99,12 @@ types.keys.forEach(function (typeKey){
     //DynamicTypesManager.bindTypeFinderMethods()
     DynamicTypesManager.bindTypeFinderMethods(namespaceDefinition.name, typeKey, obj.findById, obj.findAll, obj.hasChildren, obj.findRelations);
 });
+
+//push to vRA:
+
+token = System.getModule("com.vmware.pso.types.ansible").getvRAAuthToken(json.vRAServer);
+System.getModule("com.vmware.pso.types.ansible").pushTypeTovRA(json.vRAServer, typeWorkflows, token, json.namespace);
+
 
 
 function generateContainerActions(types, token, typeWorkflows){
@@ -111,12 +119,15 @@ function generateContainerActions(types, token, typeWorkflows){
 
 function generateMediatorAction(typeJson, token, typeWorkflows){
 
-    System.debug("Generating 'Finder|Create|Update|Delete' Actions...");
+    System.debug("Generating 'Finder' Actions...");
       
-    var actionId = System.getModule("com.vmware.pso.types.ansible").generateAWXMediatorAction(token,json.vROServer,typeJson,json.namespace);
+    var actionIds = System.getModule("com.vmware.pso.types.ansible").generateAWXMediatorAction(token,json.vROServer,typeJson,json.namespace);
     System.debug("##### Generated Mediator Action ######");
-    System.debug(actionId);
+    System.debug(JSON.stringify(actionIds));
 
+    actionIds.forEach(function(act){
+        typeWorkflows.push({"wfid": act.actionName, "event": act.reference.event, "typeName": act.reference.typeName});
+    });
     if (typeJson.childTypes){
         typeJson.childTypes.forEach(function(child){
             child.parentType = typeJson.typeName;
@@ -138,11 +149,7 @@ function generateWorkflowsForType(typeJson, token, typeWorkflows){
         typeJson.AWXJobTemplates.forEach(function(template){
             var wfid = System.getModule("com.vmware.pso.types.ansible").generateAWXMediatorWorkflow(token,template,json.vROServer,typeJson,json.namespace, baseTypeName);
             if (wfid != null){
-                typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.typeName});
-                //duplicate entry for the container, if any:
-                if (typeJson.containerName != null && typeJson.containerName.length > 0){
-                    typeWorkflows.push({"wfid": wfid, "event": template.event, "typeName": typeJson.containerName});
-                }
+                typeWorkflows.push({"wfid": wfid.wfid, "event": template.event, "typeName": typeJson.typeName, "typeObject": typeJson, "wfName": wfid.wfName});
             }
         });
     } else {
@@ -154,7 +161,7 @@ function generateWorkflowsForType(typeJson, token, typeWorkflows){
     var day2Wfs = System.getModule("com.vmware.pso.types.ansible").generateAWXDay2Workflows(json.vROServer,typeJson,json.namespace,token);
     day2Wfs.keys.forEach(function(key){
         //typeWorkflows.put(newId, {"event": op.eventName, "typeName": typeJson.typeName});
-        typeWorkflows.push({"wfid": key, "event": day2Wfs[key].event, "typeName": day2Wfs[key].typeName});
+        typeWorkflows.push({"wfid": key, "event": day2Wfs[key].event, "typeName": day2Wfs[key].typeName, "day2data": day2Wfs[key], "typeObject": typeJson});
     });
 
     //Children:

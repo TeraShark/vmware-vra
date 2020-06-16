@@ -65,49 +65,51 @@ childTypes.forEach(function (childTypeName) {
                 result.push(DynamicTypesManager.makeObject(namespace, childTypeName, childTypeName + "|#|" + endpointId, childTypeName));
                 break;
         }
-    } else{
+    } else {
+        if (relationName == typeName + "-" + childTypeName) {
 
-    System.debug("Fetching child configs for [" + namespace + "." + childTypeName + "]...");
-    var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + childTypeName);
-    if (!cat) {
-        throw "No child Configurations found for " + namespace + "." + childTypeName;
-    }
-    found = false;
-    try {
-        cat.configurationElements.forEach(function (elem) {
-            //System.debug(elem.name);
-            if (!found) {
-                if (elem.name == "{{eventName}}") {
-                    typeProperties = JSON.parse(elem.getAttributeWithKey("typeProperties").value);
-                    outputMapping = elem.getAttributeWithKey("outputMapping").value;
-                    extra_vars = elem.getAttributeWithKey("extra_vars").value;
-                    templateId = elem.getAttributeWithKey("templateId").value;
-                    found = true;
-                }
+            System.debug("Fetching child configs for [" + namespace + "." + childTypeName + "]...");
+            var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + childTypeName);
+            if (!cat) {
+                throw "No child Configurations found for " + namespace + "." + childTypeName;
             }
-        });
-    } catch (e) {
-        throw "Missing Configuration values for events for Type: " + childTypeName;
-    }
-    if (!found) {
-        throw "Missing Configuration values for events for Type: " + childTypeName;
+            found = false;
+            try {
+                cat.configurationElements.forEach(function (elem) {
+                    //System.debug(elem.name);
+                    if (!found) {
+                        if (elem.name == "{{eventName}}") {
+                            typeProperties = JSON.parse(elem.getAttributeWithKey("typeProperties").value);
+                            outputMapping = elem.getAttributeWithKey("outputMapping").value;
+                            extra_vars = elem.getAttributeWithKey("extra_vars").value;
+                            templateId = elem.getAttributeWithKey("templateId").value;
+                            found = true;
+                        }
+                    }
+                });
+            } catch (e) {
+                throw "Missing Configuration values for events for Type: " + childTypeName;
+            }
+            if (!found) {
+                throw "Missing Configuration values for events for Type: " + childTypeName;
 
-    }
+            }
 
-    //######### prepare context #################
-    //|||||extravars_script|||||
+            //######### prepare context #################
+            //|||||extravars_script|||||
 
-    //######### launch job #################
-    jobId = System.getModule("com.vmware.pso.types.ansible").launchAWXJob(endpointName, extra_vars, templateId, namespace, childTypeName);
+            //######### launch job #################
+            jobId = System.getModule("com.vmware.pso.types.ansible").launchAWXJob(endpointName, extra_vars, templateId, namespace, childTypeName);
 
-    //######### get job status  #################
-    successful = System.getModule("com.vmware.pso.types.ansible").getAWXJobStatus(endpointName, jobId, namespace, childTypeName);
+            //######### get job status  #################
+            successful = System.getModule("com.vmware.pso.types.ansible").getAWXJobStatus(endpointName, jobId, namespace, childTypeName);
 
-    //######### get job output  #################
-    responseContent = System.getModule("com.vmware.pso.types.ansible").getAWXJobOutput(endpointName, jobId, namespace, childTypeName);
+            //######### get job output  #################
+            responseContent = System.getModule("com.vmware.pso.types.ansible").getAWXJobOutput(endpointName, jobId, namespace, childTypeName);
 
-    //######### parse & assign  #################
-    //|||||parse_script|||||
+            //######### parse & assign  #################
+            //|||||parse_script|||||
+        }
     }
 });
 System.debug(JSON.stringify(result));
