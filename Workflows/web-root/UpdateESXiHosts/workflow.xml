@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="d62af302-aa79-4c51-96b8-a248c6b9ffde" editor-version="2.0" version="0.1.7" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>UpdateESXiHosts</display-name>
+    <description>Runs scripts on ESXi hosts listed in the local Configuration</description>
+    <position y="50.0" x="100.0"/>
+    <input/>
+    <output/>
+    <attrib name="hosts" type="Array/string">
+        <value encoded="n">[20:string#10.149.88.129,20:string#10.149.88.129,20:string#10.149.88.129,]</value>
+        <description>A list of Hosts (either FQDN or IP Address)</description>
+    </attrib>
+    <attrib name="script" type="string">
+        <value encoded="n">uptime;ls</value>
+        <description>The commands to run on every host. Be sure to separate commands with a semicolon (;)</description>
+    </attrib>
+    <attrib name="rebootHosts" type="boolean">
+        <value encoded="n">false</value>
+        <description>whether to reboot hosts after issuing your commands. this will simply run a "shutdown -r 1" on every host if set to true.</description>
+    </attrib>
+    <attrib name="username" type="string">
+        <value encoded="n">root</value>
+    </attrib>
+    <attrib name="password" type="SecureString">
+        <value encoded="n">8BV56X4DI77O61S72P65Z31S21O46F488CH1BCAB08J13048BFR8A64BBHFF1F511HF12FAC1L1DFDAEIF869299KFAEA5D9M23C25B9Y41A5792X84D7005N910630PA564859J864DB27M15B7065ZDCC1C48J8087D1DWAD1EEB8X1454D03L63A8DD4R3AD9579W589C14EX20C6475S</value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="300.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>Iterate and Run</display-name>
+        <script encoded="false">var cmd = null;&#13;
+hosts.forEach(function (host) {&#13;
+    try {&#13;
+&#13;
+        cmd = new SSHCommand(host, username, password);&#13;
+        execSSH(cmd, script, host);&#13;
+&#13;
+        if(rebootHosts == true){&#13;
+            execSSH(cmd, "shutdown -r 1", host);&#13;
+        }&#13;
+&#13;
+    } catch (e) { throw e; }&#13;
+    finally {&#13;
+        try {&#13;
+            if (cmd != null) {&#13;
+                cmd.disconnect();&#13;
+                System.log("Disconnected from SSH Host");&#13;
+            }&#13;
+        } catch (e) { }&#13;
+    }&#13;
+});&#13;
+&#13;
+function execSSH(cmdObject, cmdText, host){&#13;
+System.debug("Executing command on remote SSH Host...");&#13;
+&#13;
+        var cmdResult = cmdObject.executeCommand(cmdText, true);&#13;
+        System.debug("Command state:" + cmdObject.state);&#13;
+        if (cmdObject.state != "error") {&#13;
+            System.log(host + ": " + cmdResult);&#13;
+        }&#13;
+        else&#13;
+            throw "Received Error from SSH command: " + cmd.error;&#13;
+}&#13;
+&#13;
+&#13;
+</script>
+        <in-binding>
+            <bind name="hosts" type="Array/string" export-name="hosts"/>
+            <bind name="username" type="string" export-name="username"/>
+            <bind name="password" type="SecureString" export-name="password"/>
+            <bind name="script" type="string" export-name="script"/>
+            <bind name="rebootHosts" type="boolean" export-name="rebootHosts"/>
+        </in-binding>
+        <out-binding/>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="171.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>
