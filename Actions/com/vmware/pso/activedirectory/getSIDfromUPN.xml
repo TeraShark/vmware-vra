@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="getSIDfromUPN" result-type="string" api-version="6.0.0" id="41a5d5b1-fc67-4f6b-b839-6d6c95863c41" version="0.0.2" category-name="com.vmware.pso.activedirectory">
+  <script encoded="false"><![CDATA[
+//var scope = new LdapSearchScope();
+
+var fullUpn = "jbloggs@corp.local";
+var upn = fullUpn;//fullUpn.split('@')[0].toLowerCase();
+var host = AD_HostManager.findAllHosts()[0];
+System.debug("Searching AD by UPN: " + upn);
+var users = ActiveDirectory.searchExactMatch("User", upn, 10, host);
+var sid = "";
+if(users.length > 0){
+    //Make 100% certain that we have an exact match: //This will only work if there's a single domain.
+    for (var i = 0; i < users.length; i++){
+        if(users[i].userPrincipalName/*.split('@')[0].toLowerCase()*/ == upn){
+            sid = users[i].sID;
+            break;
+        }
+    };
+}
+
+System.debug("Found sID: " + sid);
+
+System.debug("Searching for User by sID: " + sid);
+var sIDQuery = "(&(objectSID="+sid+"))"
+
+var adObjectBySID =  ActiveDirectory.searchForEntry("DC=corp,DC=local",LdapSearchScope.SUB,5,sIDQuery,null, host); 
+System.debug("Found UPN: " + adObjectBySID.userPrincipalName);
+
+]]></script>
+</dunes-script-module>
