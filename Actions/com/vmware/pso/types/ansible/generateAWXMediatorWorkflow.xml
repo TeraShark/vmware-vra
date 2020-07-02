@@ -14,6 +14,7 @@ if (AWXJobTemplate == null) {
     return null;
 }
 
+
 //Filter out any Day 2 Events which we do not want to create here (this is done by another action).
 var eventName = AWXJobTemplate.event.toLowerCase();
 var supportedEvents = ["create", "update", "delete"];
@@ -75,12 +76,14 @@ var newWfName = AWXJobTemplate.event + " " + namespace + "." + typeJSON.typeName
 
 System.debug("Compiling objects for Workflow content...");
 
+
 var inputs = { "param": [] };
 var outputs = {};
 
-var extra_vars_script = generateExtraVarsScript(AWXJobTemplate);
-
 var extra_vars_in_binding = [];
+var extra_vars_script = generateExtraVarsScript(AWXJobTemplate, extra_vars_in_binding);
+
+var parseScript = "";
 
 switch (eventName) {
     case "create":
@@ -96,6 +99,7 @@ switch (eventName) {
             inputs.param.push({ "name": e.inputReference, "type": "string" });
         });
         inputs.param.push({ "name": "endpointName", "type": "string" });
+        parseScript = getResourceContent("ReturnScript_create.txt");
         break;
     case "update":
         outputs = {
@@ -108,29 +112,37 @@ switch (eventName) {
         };
         var idIncluded = false;
         AWXJobTemplate.extra_vars.forEach(function (e) {
-            if (e.inputReference.toLowerCase() == "id")
+            if (e.inputReference.toLowerCase() == "id") {
+                e.inputReference = e.inputReference.toLowerCase();
                 idIncluded = true;
+            }
             inputs.param.push({ "name": e.inputReference, "type": "string" });
         });
         //check if the id is already in the inputs, otherwise include it:
         if (idIncluded == false)
             inputs.param.push({ "name": "id", "type": "string" });
+
+        parseScript = getResourceContent("ReturnScript_default.txt");
         break;
     case "delete":
         outputs = {
             "param": [{
                 "name": "result",
-                "type": "boolean"
+                "type": "string"
             }]
         };
         var idIncluded = false;
         AWXJobTemplate.extra_vars.forEach(function (e) {
-            if (e.inputReference.toLowerCase() == "id")
+            if (e.inputReference.toLowerCase() == "id") {
+                e.inputReference = e.inputReference.toLowerCase();
                 idIncluded = true;
+            }
             inputs.param.push({ "name": e.inputReference, "type": "string" });
         });
         if (idIncluded == false)
             inputs.param.push({ "name": "id", "type": "string" });
+
+        parseScript = getResourceContent("ReturnScript_delete.txt");
         break;
 }
 
@@ -165,14 +177,39 @@ attribs.forEach(function (a) {
     }
 });
 
-var parseScript = "\nvar outputObj = DynamicTypesManager.makeObject(namespace, typeName, \"1\", typeName, typeProperties);\n\n\nvar regexp = null;\nvar result = \"\";\nSystem.debug(\"Iterating Mapping and Parsing Ansible output...\");\nvar mapping = JSON.parse(outputMapping);\nvar id = null;\nmapping.forEach(function(map){\n    System.debug(\"Mapping property: \" + map.typeReference);\n \n    regexp = new RegExp(map.regExp, map.regExpFlag);\n    System.debug(\"RegExp: \" + regexp.source + \" | Flags: \" + map.regExpFlag);\n\n    result = responseContent.match(regexp);\n    if (result \&\& result.length > 1){\n        System.debug(\"Found value: \" + result[1]);\n        System.debug(map.typeReference + \":\" + result[1]);\n        if(map.typeReference.toLowerCase() == \"id\")\n            id = result[1];\n        outputObj.setProperty(map.typeReference, result[1]);\n    }\n    else{\n        System.error(\"Expression returned no results\");\n    }\n});\n\nif(id != null)\n    outputObj.id = id + \"|#|\" + endpointName;\n    \nSystem.debug(\"object id: \" + outputObj.id);\n\nresult = outputObj;\n";
+if (AWXJobTemplate.event.toLowerCase() == "create") {
+    //Remove the endpointName Attribute because this will be a mandatory input:
+    //Remove uniqueid on create because we won't use it on this workflow
+    for (var i = 0; i < attribs.length; i++) {
+        if (attribs[i].name.toLowerCase() == "endpointname" || attribs[i].name.toLowerCase() == "uniqueid") {
+            attribs.splice(i, 1);
+            i--;
+        }
+    }
+}
 
 var wfItems = JSON.parse(getResourceContent("wfitems.json"));
 wfItems.forEach(function (w) {
     switch (w["display-name"]) {
         case "Parse & Assign":
             w.script.value = parseScript;
-            w["out-binding"].bind[0]["export-name"] = "DynamicTypes:" + namespace + "." + typeJSON.typeName;
+            switch (AWXJobTemplate.event.toLowerCase()) {
+                case "delete":
+                    w["out-binding"].bind[0].type = "string";
+                    break;
+                case "update":
+                    w["out-binding"].bind[0].type = "DynamicTypes:" + namespace + "." + typeJSON.typeName;
+                    w["in-binding"].bind.push({
+                        "description": "",
+                        "name": "originalId",
+                        "type": "string",
+                        "export-name": "id"
+                    });
+                    break;
+                case "create":
+                    w["out-binding"].bind[0].type = "DynamicTypes:" + namespace + "." + typeJSON.typeName;
+                    break;
+            }
             break;
         case "Prepare context":
             w.script.value = extra_vars_script;
@@ -180,7 +217,7 @@ wfItems.forEach(function (w) {
             if (["update", "delete", "findrelations", "findbyid"].indexOf(AWXJobTemplate.event.toLowerCase()) >= 0) {
                 //add endpointName to outputs of the context prep script:
                 w["out-binding"].bind.push({ "name": "endpointName", "type": "string", "export-name": "endpointName" });
-                w["out-binding"].bind.push({"name":"uniqueId", "type":"string", "export-name":"uniqueId"});
+                w["out-binding"].bind.push({ "name": "uniqueId", "type": "string", "export-name": "uniqueId" });
             }
             break;
     }
@@ -259,19 +296,68 @@ function getResourceContent(resourceName) {
     return null;
 }
 
-function generateExtraVarsScript(AWXJobTemplate) {
+function generateExtraVarsScript(AWXJobTemplate, inputBinding) {
 
-    var extra_vars_script = 'var evars = {"extra_vars":{}};\r\n';
+    var extra_vars_script = "";
+    var parseId = false;
+    //only add this where we have an ID being passed in by default:
+    if (["update", "delete", "findrelations", "findbyid"].indexOf(AWXJobTemplate.event.toLowerCase()) >= 0) {
+        extra_vars_script = "//Get Endpoint and ID from input\nvar split = id.split(\"|#|\");\nif (split.length > 1){\n  endpointName = split[1];\n}\nuniqueId = split[0];\nSystem.debug(uniqueId);\nSystem.debug(endpointName);\r\n";
+        parseId = true;
+    }
+    extra_vars_script += 'var evars = {"extra_vars":{}};\r\n';
 
     AWXJobTemplate.extra_vars.forEach(function (e) {
-        extra_vars_script += 'evars.extra_vars.' + e.name + ' = ' + e.inputReference + ';\r\n';
+        if (parseId == true && e.inputReference.toLowerCase() == "id")
+            extra_vars_script += 'evars.extra_vars.' + e.name + ' = uniqueId;\r\n';
+        else
+            extra_vars_script += 'evars.extra_vars.' + e.name + ' = ' + e.inputReference + ';\r\n';
+
+        inputBinding.push({
+            "description": "",
+            "name": e.inputReference,
+            "type": "string",
+            "export-name": e.inputReference
+        });
     });
     extra_vars_script += "extra_vars = JSON.stringify(evars);\n";
-    //only add this where we have an ID being passed in by default:
-    if (["update", "delete", "findrelations", "findbyid"].indexOf(AWXJobTemplate.event.toLowerCase()) >= 0)
-        extra_vars_script += "//Get Endpoint and ID from input\nvar split = id.split(\"|#|\");\nif (split.length > 1){\n  endpointName = split[1];\n}\nuniqueId = split[0];\nSystem.debug(uniqueId);\nSystem.debug(endpointName);";
-
-
     return extra_vars_script;
-}]]></script>
+}
+/*
+"in-binding": {
+            "bind": [
+                {
+                    "description": "",
+                    "name": "endpointName",
+                    "type": "string",
+                    "export-name": "endpointName"
+                },
+                {
+                    "description": "",
+                    "name": "extra_vars",
+                    "type": "string",
+                    "export-name": "extra_vars"
+                },
+                {
+                    "description": "",
+                    "name": "templateId",
+                    "type": "string",
+                    "export-name": "templateId"
+                },
+                {
+                    "description": "",
+                    "name": "namespace",
+                    "type": "string",
+                    "export-name": "namespace"
+                },
+                {
+                    "description": "",
+                    "name": "typeName",
+                    "type": "string",
+                    "export-name": "typeName"
+                }
+            ]
+        }
+
+*/]]></script>
 </dunes-script-module>

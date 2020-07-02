@@ -59,13 +59,7 @@ if (!found) {
 //|||||extravars_script|||||
 
 //######### launch job #################
-jobId = System.getModule("com.vmware.pso.types.ansible").launchAWXJob(endpointName, extra_vars, templateId, namespace, childTypeName);
-
-//######### get job status  #################
-successful = System.getModule("com.vmware.pso.types.ansible").getAWXJobStatus(endpointName, jobId, namespace, childTypeName);
-
-//######### get job output  #################
-responseContent = System.getModule("com.vmware.pso.types.ansible").getAWXJobOutput(endpointName, jobId, namespace, childTypeName);
+responseContent = System.getModule("com.vmware.pso.types.ansible").launchAWXJob(endpointName, extra_vars, templateId, namespace, childTypeName);
 
 //######### parse & assign  #################
 //|||||parse_script|||||

@@ -92,11 +92,63 @@ vRAServer = p.vRAServer;
 
 //TODO: Validate required JSON fields
 
+p.types.forEach(function(t) {
+    t = cleanType(t);
+});
+
 payload = p;
 
 System.debug("Parsed JSON...");
+System.debug(JSON.stringify(p));
 
-</script>
+function cleanType(type) {
+
+//clean JSON:
+//1. Any instances of "id" in typeProperties should be removed.
+//2. Any instances of "name" in typeProperties should be removed.
+//3. Any other references in the vars sections should represent "name" and "id" accordingly.
+
+    for (var i = 0; i &lt; type.typeProperties.length; i++) {
+        if (type.typeProperties[i].toLowerCase() == "id" || type.typeProperties[i].toLowerCase() == "name") {
+            type.typeProperties.splice(i, 1);
+            i--;
+            //System.debug("Removed id/name instance...");
+        }
+    }
+    try {
+        type.AWXJobTemplates.forEach(function(t){
+            t.extra_vars.forEach(function (e) {
+            if (e.inputReference.toLowerCase() == "id") {
+                e.inputReference = "id";
+               //System.debug("lowered EV id");
+            }else if(e.inputReference.toLowerCase() == "name"){
+                e.inputReference = "name";
+                //System.debug("lowered EV name");
+            }});
+        });
+    } catch(e){ }
+    try {
+        type.AWXJobTemplates.forEach(function(t){
+        t.outputMapping.forEach(function (e) {
+            if (e.typeReference.toLowerCase() == "id") {
+                e.typeReference = "id";
+                //System.debug("lowered OM id");
+            } else if(e.typeReference.toLowerCase() == "name"){
+                e.typeReference = "name";
+                //System.debug("lowered OM name");
+            }});
+        });
+    } catch(e){ }
+
+    if(type.childTypes){
+        type.childTypes.forEach(function(c){
+            c = cleanType(c);
+        });
+    }
+
+    return type;
+
+}</script>
         <in-binding>
             <bind name="json" type="string" export-name="json"/>
         </in-binding>
