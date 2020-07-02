@@ -3,25 +3,18 @@
     <display-name>UpdateESXiHosts</display-name>
     <description>Runs scripts on ESXi hosts listed in the local Configuration</description>
     <position y="50.0" x="100.0"/>
-    <input/>
-    <output>
-        <param name="successfulHosts" type="Properties">
-            <description>A list of hosts (and output) for which execution was successful</description>
+    <input>
+        <param name="hosts" type="string">
+            <description>A list of Hosts (either FQDN or IP Address) separated by commas (,)</description>
         </param>
-        <param name="failedHosts" type="Properties">
-            <description>A list of hosts (and errors) for commands which failed</description>
-        </param>
-    </output>
-    <attrib name="hosts" type="string">
-        <value encoded="n">10.149.88.129,10.149.88.129,10.149.88.129</value>
-        <description>A list of Hosts (either FQDN or IP Address) separated by commas (,)</description>
-    </attrib>
+    </input>
+    <output/>
     <attrib name="script" type="string">
-        <value encoded="n">uptime;ls</value>
+        <value encoded="n">esxcli software vib remove --vibname=lsi-mr3 -f;esxcli software vib remove --vibname=bnxtnet -f;esxcli software vib remove --vibname=bnxtroce -f;esxcli software vib remove --vibname=i40en -f;esxcli software vib remove --vibname=igbn -f;esxcli software vib remove --vibname=ixgben -f;esxcli software vib remove --vibname=nmlx5-core -f;esxcli software vib remove --vibname=nmlx5-rdma -f;esxcli software vib remove --vibname=nmst -f;esxcli software vib remove --vibname=lsi-msgpt2 -f;esxcli software vib remove --vibname=lsi-msgpt35 -f;esxcli software vib remove --vibname=lsi-msgpt3 -f;esxcli software vib remove --vibname=brcmfcoe -f;esxcli software vib remove --vibname=elxiscsi -f;esxcli software vib remove --vibname=elxnet -f;esxcli software vib remove --vibname=lpfc -f;esxcli software vib remove -n nmlx4-core;esxcli software vib remove -n nmlx4-en;esxcli software vib remove -n nmlx4-rdma;esxcli software vib remove -n net-mlx4-core;esxcli software vib remove -n net-mlx4-en;esxcli software vib remove -n qfle3f;esxcli software vib remove -n qfle3i;esxcli software vib remove -n elx-esx-libelxima-8169922.so</value>
         <description>The commands to run on every host. Be sure to separate commands with a semicolon (;)</description>
     </attrib>
     <attrib name="rebootHosts" type="boolean">
-        <value encoded="n">false</value>
+        <value encoded="n">true</value>
         <description>whether to reboot hosts after issuing your commands. this will simply run a "shutdown -r 1" on every host if set to true.</description>
     </attrib>
     <attrib name="username" type="string">
@@ -31,62 +24,102 @@
         <value encoded="n">8BV56X4DI77O61S72P65Z31S21O46F488CH1BCAB08J13048BFR8A64BBHFF1F511HF12FAC1L1DFDAEIF869299KFAEA5D9M23C25B9Y41A5792X84D7005N910630PA564859J864DB27M15B7065ZDCC1C48J8087D1DWAD1EEB8X1454D03L63A8DD4R3AD9579W589C14EX20C6475S</value>
     </attrib>
     <attrib name="continueOnError" type="boolean">
-        <value encoded="n">false</value>
+        <value encoded="n">true</value>
         <description>Whether to continue if an error is encountered</description>
+    </attrib>
+    <attrib name="successfulHosts" type="Properties">
+        <value encoded="n"/>
+        <description>A list of hosts (and output) for which execution was successful</description>
+    </attrib>
+    <attrib name="failedHosts" type="Properties">
+        <value encoded="n"/>
+        <description>A list of hosts (and errors) for commands which failed</description>
     </attrib>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
         <out-binding/>
-        <position y="50.0" x="300.0"/>
+        <position y="50.0" x="340.0"/>
     </workflow-item>
     <workflow-item name="item1" out-name="item0" type="task" comparator="0">
         <display-name>Iterate and Run</display-name>
         <script encoded="false">var cmd = null;&#13;
 var hostlist = hosts.split(',');&#13;
-successfulHosts = new Properties();&#13;
-failedHosts = new Properties();&#13;
+var successful = new Properties();&#13;
+var failed = new Properties();&#13;
+&#13;
+var commands = script.split(";");&#13;
 &#13;
 System.log("Iterating " + hostlist.length + " hosts...");&#13;
-hostlist.forEach(function (host) {&#13;
-    try {&#13;
+try {&#13;
+    hostlist.forEach(function (host) {&#13;
         //remove any whitespace:&#13;
         host = host.replace(/\s/g, '');&#13;
         if (host.length &gt; 0) {&#13;
+            var result = "";&#13;
+            var results = [];&#13;
+            var errors = [];&#13;
             cmd = new SSHCommand(host, username, password);&#13;
-            var result = execSSH(cmd, script, host);&#13;
+            //execute each command indepently:&#13;
+            System.debug("Executing " + commands.length + " commands...");&#13;
+            var errorEncountered = false;&#13;
+            commands.forEach(function (cmdText) {&#13;
+                try {&#13;
+                    result = execSSH(cmd, cmdText, host);&#13;
+                    results.push(result);&#13;
+                } catch (e) {&#13;
+                    System.error(e);&#13;
+                    errors.push(e);&#13;
+                    if (continueOnError == false) {&#13;
+                        //update the outputs before throwing:&#13;
+                        successful.put(host, results);&#13;
+                        failed.put(host, errors);&#13;
+                        errorEncountered = true;&#13;
+                        //System.debug(JSON.stringify(failedHosts));&#13;
+                        throw e;&#13;
+                    }&#13;
+                }&#13;
+                finally {&#13;
+                    try {&#13;
+                        if (cmd != null) {&#13;
+                            cmd.disconnect();&#13;
+                            System.log("Disconnected from SSH Host");&#13;
+                        }&#13;
+                    } catch (e) { }&#13;
+                }&#13;
+            });&#13;
+            if (rebootHosts == true &amp;&amp; errorEncountered == false) {&#13;
+                result = execSSH(cmd, "shutdown -r 1", host);&#13;
+                results.push(result);&#13;
+            }&#13;
+            if (errors.length &gt; 0) {&#13;
+                failed.put(host, errors);&#13;
+            }&#13;
+            if (results.length &gt; 0) {&#13;
+                successful.put(host, results);&#13;
+            }&#13;
+        }&#13;
 &#13;
-            if (rebootHosts == true) {&#13;
-                execSSH(cmd, "shutdown -r 1", host);&#13;
-            }&#13;
-            successfulHosts.put(host, result);&#13;
-        }&#13;
-    } catch (e) {&#13;
-        failedHosts.put(host, e);&#13;
-        if (continueOnError == false) {&#13;
-            throw e;&#13;
-        }&#13;
-    }&#13;
-    finally {&#13;
-        try {&#13;
-            if (cmd != null) {&#13;
-                cmd.disconnect();&#13;
-                System.log("Disconnected from SSH Host");&#13;
-            }&#13;
-        } catch (e) { }&#13;
-    }&#13;
-});&#13;
+    });&#13;
+} catch (e) {&#13;
+    System.error(e);&#13;
+}&#13;
+finally {&#13;
+    successfulHosts = successful;&#13;
+    failedHosts = failed;&#13;
+}&#13;
 &#13;
 function execSSH(cmdObject, cmdText, host) {&#13;
-    System.debug("Executing command on remote SSH Host: " + host + "...");&#13;
+    System.debug("Executing command on remote SSH Host [" + host + "]:");&#13;
+    System.debug(cmdText);&#13;
 &#13;
     var cmdResult = cmdObject.executeCommand(cmdText, true);&#13;
-    //System.debug("Command state:" + cmdObject.state);&#13;
+    System.debug("Command state:" + cmdObject.state);&#13;
     if (cmdObject.state != "error") {&#13;
-        System.log(host + ": " + cmdResult);&#13;
+        System.log("output - " + host + ": " + cmdResult);&#13;
     }&#13;
     else&#13;
-        throw "Received Error from SSH command: " + cmd.error;&#13;
-    &#13;
+        throw "Received Error from SSH command: " + cmdObject.error;&#13;
+&#13;
     return cmdResult;&#13;
 }&#13;
 &#13;
@@ -105,7 +138,7 @@ function execSSH(cmdObject, cmdText, host) {&#13;
             <bind name="failedHosts" type="Properties" export-name="failedHosts"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="171.0"/>
+        <position y="60.0" x="172.0"/>
     </workflow-item>
     <presentation/>
 </ns2:workflow>

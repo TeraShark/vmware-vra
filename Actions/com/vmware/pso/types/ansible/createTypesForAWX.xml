@@ -4,17 +4,17 @@
   <param n="namespaceDefinition" t="DynamicTypes:DynamicNamespaceDefinition"><![CDATA[]]></param>
   <param n="json" t="Any"><![CDATA[The AWX-specific JSON payload object]]></param>
   <param n="workflowStubsCategory" t="WorkflowCategory"><![CDATA[]]></param>
-  <script encoded="false"><![CDATA[var finderWorkflowIDs = new Properties();
+  <script encoded="false"><![CDATA[
 var namespaceName = namespaceDefinition.name;
 
-for each(var dynType in json.types){
-    createType(dynType, null, finderWorkflowIDs);
+for each(var dynType in json.types) {
+    createType(dynType, null);
 }
 
 return "Types Created";
 
 
-function createType(typeJson, parentTypeDef, finderWorkflowIDs){
+function createType(typeJson, parentTypeDef) {
     var typeName = typeJson.typeName;
     // Validate and post-process input values
     if (typeName == null || typeName.trim().length == 0) {
@@ -24,33 +24,44 @@ function createType(typeJson, parentTypeDef, finderWorkflowIDs){
     typeName = typeName.trim();
 
     var iconResName = icon.getResourceElementCategory().path + "/" + icon.name;
-   
 
-    var typeDef = DynamicTypesManager.defineType(namespaceName, typeName, iconResName, typeJson.typeProperties);
+    var typeProps = typeJson.typeProperties;
+    //remove any "id" or "name" references here because those are inherent on all types:
+    for (var i = 0; i < typeProps.length; i++) {
+        var prop = typeProps[i].toLowerCase();
+        switch (prop) {
+            case "id":
+            case "name":
+                typeProps.splice(i, 1);
+                i--;
+                break;
+            default:
+                break;
+        }
+    }
 
+    var typeDef = DynamicTypesManager.defineType(namespaceName, typeName, iconResName, typeProps);
 
     if (typeDef == null) {
         throw "Failed to create dynamic type: " + namespaceName + "." + typeName + ". Does it already exist?";
     }
     System.log("Created dynamic type: " + typeDef.name);
     var folderDef = null;
-    if(typeJson.containerName){
+    if (typeJson.containerName) {
         folderDef = DynamicTypesManager.defineType(namespaceName, typeJson.containerName, iconResName, []);
         System.debug("Defining relationship: " + typeJson.containerName + "-" + typeName);
         DynamicTypesManager.defineRelation(folderDef.id, typeDef.id, typeJson.containerName + "-" + typeName);
     }
 
-    if (parentTypeDef != null){
+    if (parentTypeDef != null) {
         //Define relation between parent object and this folder
         System.debug("Defining relationship: " + parentTypeDef.name + "-" + typeJson.containerName);
         DynamicTypesManager.defineRelation(parentTypeDef.id, folderDef.id, parentTypeDef.name + "-" + typeJson.containerName);
     }
 
-    
-    
-    if (typeJson.childTypes){
-        for each(var child in typeJson.childTypes){
-            createType(child, typeDef, finderWorkflowIDs);
+    if (typeJson.childTypes) {
+        for each(var child in typeJson.childTypes) {
+            createType(child, typeDef);
         }
     }
 }

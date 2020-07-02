@@ -129,24 +129,6 @@ else {
                         }
                     },
                     "type": "string",
-                    "name": "jobId"
-                },
-                {
-                    "value": {
-                        "boolean": {
-                            "value": false
-                        }
-                    },
-                    "type": "boolean",
-                    "name": "successful"
-                },
-                {
-                    "value": {
-                        "string": {
-                            "value": ""
-                        }
-                    },
-                    "type": "string",
                     "name": "responseContent"
                 },
                 {
@@ -220,7 +202,7 @@ else {
                     "out-binding": {},
                     "position": {
                         "y": 50.0,
-                        "x": 700.0
+                        "x": 460.0
                     },
                     "name": "item0",
                     "type": "end",
@@ -279,119 +261,11 @@ else {
                     "description": "Simple task with custom script capability.",
                     "position": {
                         "y": 60.0,
-                        "x": 560.0
+                        "x": 360.0
                     },
                     "name": "item1",
                     "out-name": "item0",
                     "type": "task",
-                    "comparator": 0
-                },
-                {
-                    "display-name": "Get Job Output",
-                    "script": {
-                        "value": "//Auto generated script, cannot be modified !\nactionResult = System.getModule(\"com.vmware.pso.types.ansible\").getAWXJobOutput(endpointName,jobId,namespace,typeName);\n",
-                        "encoded": false
-                    },
-                    "in-binding": {
-                        "bind": [
-                            {
-                                "description": "",
-                                "name": "endpointName",
-                                "type": "string",
-                                "export-name": "EndpointName"
-                            },
-                            {
-                                "description": "",
-                                "name": "jobId",
-                                "type": "string",
-                                "export-name": "jobId"
-                            },
-                            {
-                                "description": "",
-                                "name": "namespace",
-                                "type": "string",
-                                "export-name": "namespace"
-                            },
-                            {
-                                "description": "",
-                                "name": "typeName",
-                                "type": "string",
-                                "export-name": "typeName"
-                            }
-                        ]
-                    },
-                    "out-binding": {
-                        "bind": [
-                            {
-                                "name": "actionResult",
-                                "type": "string",
-                                "export-name": "responseContent"
-                            }
-                        ]
-                    },
-                    "description": "Add a note to the workflow schema.",
-                    "position": {
-                        "y": 60.0,
-                        "x": 460.0
-                    },
-                    "name": "item2",
-                    "out-name": "item1",
-                    "type": "task",
-                    "script-module": "com.vmware.pso.types.ansible/getAWXJobOutput",
-                    "comparator": 0
-                },
-                {
-                    "display-name": "Get Job Status",
-                    "script": {
-                        "value": "//Auto generated script, cannot be modified !\nactionResult = System.getModule(\"com.vmware.pso.types.ansible\").getAWXJobStatus(endpointName,jobId,namespace,typeName);\n",
-                        "encoded": false
-                    },
-                    "in-binding": {
-                        "bind": [
-                            {
-                                "description": "",
-                                "name": "endpointName",
-                                "type": "string",
-                                "export-name": "EndpointName"
-                            },
-                            {
-                                "description": "",
-                                "name": "jobId",
-                                "type": "string",
-                                "export-name": "jobId"
-                            },
-                            {
-                                "description": "",
-                                "name": "namespace",
-                                "type": "string",
-                                "export-name": "namespace"
-                            },
-                            {
-                                "description": "",
-                                "name": "typeName",
-                                "type": "string",
-                                "export-name": "typeName"
-                            }
-                        ]
-                    },
-                    "out-binding": {
-                        "bind": [
-                            {
-                                "name": "actionResult",
-                                "type": "boolean",
-                                "export-name": "successful"
-                            }
-                        ]
-                    },
-                    "description": "Add a note to the workflow schema.",
-                    "position": {
-                        "y": 60.0,
-                        "x": 360.0
-                    },
-                    "name": "item3",
-                    "out-name": "item2",
-                    "type": "task",
-                    "script-module": "com.vmware.pso.types.ansible/getAWXJobStatus",
                     "comparator": 0
                 },
                 {
@@ -439,7 +313,7 @@ else {
                             {
                                 "name": "actionResult",
                                 "type": "string",
-                                "export-name": "jobId"
+                                "export-name": "responseContent"
                             }
                         ]
                     },
@@ -448,8 +322,8 @@ else {
                         "y": 60.0,
                         "x": 260.0
                     },
-                    "name": "item4",
-                    "out-name": "item3",
+                    "name": "item2",
+                    "out-name": "item1",
                     "type": "task",
                     "script-module": "com.vmware.pso.types.ansible/launchAWXJob",
                     "comparator": 0
@@ -477,13 +351,13 @@ else {
                         "y": 60.0,
                         "x": 160.0
                     },
-                    "name": "item5",
-                    "out-name": "item4",
+                    "name": "item3",
+                    "out-name": "item2",
                     "type": "task",
                     "comparator": 0
                 }
             ];
-            wfContent["root-name"] = "item5";
+            wfContent["root-name"] = "item3";
             wfContent["id"] = newId;
             wfContent["output"] = outputs;
             wfContent["input"] = inputs;

@@ -7,8 +7,8 @@
     <attrib name="token" type="string">
         <value encoded="n"></value>
     </attrib>
-    <attrib name="requestId" type="string">
-        <value encoded="n"></value>
+    <attrib name="requestIds" type="Properties">
+        <value encoded="n">#[##]#</value>
     </attrib>
     <workflow-item name="item0" type="end" end-mode="0" comparator="0">
         <in-binding/>
@@ -77,10 +77,11 @@ token = response.token.toString();&#13;
         <position y="60.0" x="180.0"/>
     </workflow-item>
     <workflow-item name="item2" out-name="item4" type="task" comparator="0">
-        <display-name>Renew Lease</display-name>
+        <display-name>Renew Leases</display-name>
         <script encoded="false">&#13;
 System.sleep(5000);//Sleep 5s for token to register...&#13;
 &#13;
+requestIds = new Properties();&#13;
 var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
 var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
 &#13;
@@ -90,52 +91,56 @@ var endpointName = "vRA";&#13;
 var exp = new Date();&#13;
 exp.setDate(exp.getDate() + 4);&#13;
 var requestContent = {&#13;
-  "actionId": "Deployment.ChangeLease",&#13;
-  "inputs": {"Lease Expiration Date": exp},&#13;
-  "reason": "Required for Lab Testing"&#13;
+    "actionId": "Deployment.ChangeLease",&#13;
+    "inputs": { "Lease Expiration Date": exp },&#13;
+    "reason": "Required for Lab Testing"&#13;
 };&#13;
 &#13;
 System.debug(token);&#13;
 &#13;
-var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", ""); &#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", "");&#13;
 var restClient = new RestClient(restHost);&#13;
 &#13;
-var request = {&#13;
-    path: '/deployment/api/deployments/{deployment_id}/requests/',&#13;
-    params: ["1247938e-a3d6-4a3c-9621-af8c7b7b0937"],&#13;
-    content: requestContent,&#13;
-    options: {&#13;
-        skipEncodeParams: true,	&#13;
-        returnResponseObject: true,		&#13;
-        returnResponseObjectForReal: false, 	&#13;
-        stringifyJsonContent: true,	&#13;
-        interpretResponseCode: false,	&#13;
-        headers: {&#13;
-            'Accept-Encoding': 'gzip, deflate, br',&#13;
-            'Content-Type': 'application/json',&#13;
-            'Accept': 'application/json',&#13;
-            'Cache-Control':'no-cache',&#13;
-            'Authorization': 'Bearer ' + token&#13;
-        },&#13;
-        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
-            numberOfRetries: 3,			//Number of retries&#13;
-            retryWaitInterval: 15,			//Polling interval in seconds&#13;
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+var deployments = ["ce4fa2bd-c3e0-464c-860d-de1e9c93f9c1", "1247938e-a3d6-4a3c-9621-af8c7b7b0937"];&#13;
+deployments.forEach(function (d) {&#13;
+    var request = {&#13;
+        path: '/deployment/api/deployments/{deployment_id}/requests/',&#13;
+        params: [d],&#13;
+        content: requestContent,&#13;
+        options: {&#13;
+            skipEncodeParams: true,&#13;
+            returnResponseObject: true,&#13;
+            returnResponseObjectForReal: false,&#13;
+            stringifyJsonContent: true,&#13;
+            interpretResponseCode: false,&#13;
+            headers: {&#13;
+                'Accept-Encoding': 'gzip, deflate, br',&#13;
+                'Content-Type': 'application/json',&#13;
+                'Accept': 'application/json',&#13;
+                'Cache-Control': 'no-cache',&#13;
+                'Authorization': 'Bearer ' + token&#13;
+            },&#13;
+            errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+                numberOfRetries: 3,			//Number of retries&#13;
+                retryWaitInterval: 15,			//Polling interval in seconds&#13;
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+            }&#13;
         }&#13;
-    }&#13;
-};&#13;
-System.debug("Requesting Extension for " + exp);&#13;
-System.debug(JSON.stringify(requestContent));&#13;
-//var urlTemplate = "workflows/{id}";&#13;
+    };&#13;
+    System.debug("Requesting Extension for " + exp);&#13;
+    System.debug(JSON.stringify(requestContent));&#13;
+    //var urlTemplate = "workflows/{id}";&#13;
 &#13;
-var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
-if (httpData.statusCode != 200){&#13;
-    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
-}&#13;
-var json = JSON.parse(httpData.contentAsString);&#13;
-//System.log(access_token);&#13;
-System.debug("Request sent: " + json.status);&#13;
-requestId = json.id;&#13;
+    var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
+    if (httpData.statusCode != 200) {&#13;
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
+    }&#13;
+    var json = JSON.parse(httpData.contentAsString);&#13;
+    //System.log(access_token);&#13;
+    System.debug("Request sent: " + json.status);&#13;
+    requestIds.put(d, json.id);&#13;
+});&#13;
+&#13;
 &#13;
 &#13;
 </script>
@@ -143,7 +148,7 @@ requestId = json.id;&#13;
             <bind name="token" type="string" export-name="token"/>
         </in-binding>
         <out-binding>
-            <bind name="requestId" type="string" export-name="requestId"/>
+            <bind name="requestIds" type="Properties" export-name="requestIds"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
         <position y="60.0" x="285.0"/>
@@ -214,50 +219,53 @@ var endpointUrl = "https://api.mgmt.cloud.vmware.com";&#13;
 var endpointName = "vRA";&#13;
 &#13;
 &#13;
-var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", ""); &#13;
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", "");&#13;
 var restClient = new RestClient(restHost);&#13;
 //https://api.mgmt.cloud.vmware.com/deployment/api/deployments/1247938e-a3d6-4a3c-9621-af8c7b7b0937/requests/{{requestid}}&#13;
-var request = {&#13;
-    path: '/deployment/api/deployments/{deployment_id}/requests/{requestId}',&#13;
-    params: ["1247938e-a3d6-4a3c-9621-af8c7b7b0937", requestId],&#13;
-    &#13;
-    options: {&#13;
-        skipEncodeParams: true,	&#13;
-        returnResponseObject: true,		&#13;
-        returnResponseObjectForReal: false, 	&#13;
-        stringifyJsonContent: true,	&#13;
-        interpretResponseCode: false,	&#13;
-        headers: {&#13;
-            'Accept-Encoding': 'gzip, deflate, br',&#13;
-            'Accept': 'application/json',&#13;
-            'Cache-Control':'no-cache',&#13;
-            'Authorization': 'Bearer ' + token&#13;
-        },&#13;
-        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
-            numberOfRetries: 3,			//Number of retries&#13;
-            retryWaitInterval: 15,			//Polling interval in seconds&#13;
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+requestIds.keys.forEach(function (r) {&#13;
+    var request = {&#13;
+        path: '/deployment/api/deployments/{deployment_id}/requests/{requestId}',&#13;
+        params: [r, requestIds.get(r)],&#13;
+&#13;
+        options: {&#13;
+            skipEncodeParams: true,&#13;
+            returnResponseObject: true,&#13;
+            returnResponseObjectForReal: false,&#13;
+            stringifyJsonContent: true,&#13;
+            interpretResponseCode: false,&#13;
+            headers: {&#13;
+                'Accept-Encoding': 'gzip, deflate, br',&#13;
+                'Accept': 'application/json',&#13;
+                'Cache-Control': 'no-cache',&#13;
+                'Authorization': 'Bearer ' + token&#13;
+            },&#13;
+            errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
+                numberOfRetries: 3,			//Number of retries&#13;
+                retryWaitInterval: 15,			//Polling interval in seconds&#13;
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
+            }&#13;
         }&#13;
+    };&#13;
+    System.debug("Checking Request Status...");&#13;
+&#13;
+    //var urlTemplate = "workflows/{id}";&#13;
+&#13;
+    var httpData = restClient.get(request.path, request.params, request.options);&#13;
+    if (httpData.statusCode != 200) {&#13;
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
     }&#13;
-};&#13;
-System.debug("Checking Request Status...");&#13;
+    var json = JSON.parse(httpData.contentAsString);&#13;
+    //System.log(access_token);&#13;
+    System.debug("Request verified: " + json.status);&#13;
+});&#13;
 &#13;
-//var urlTemplate = "workflows/{id}";&#13;
-&#13;
-var httpData = restClient.get(request.path, request.params, request.options);&#13;
-if (httpData.statusCode != 200){&#13;
-    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
-}&#13;
-var json = JSON.parse(httpData.contentAsString);&#13;
-//System.log(access_token);&#13;
-System.debug("Request verified: " + json.status);&#13;
 &#13;
 &#13;
 &#13;
 </script>
         <in-binding>
             <bind name="token" type="string" export-name="token"/>
-            <bind name="requestId" type="string" export-name="requestId"/>
+            <bind name="requestIds" type="Properties" export-name="requestIds"/>
         </in-binding>
         <out-binding/>
         <description>Simple task with custom script capability.</description>

@@ -1,0 +1,83 @@
+[
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "endpointName"
+    },
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "uniqueId"
+    },
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "responseContent"
+    },
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "outputMapping"
+    },
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "extra_vars"
+    },
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "templateId"
+    },
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "namespace"
+    },
+    {
+        "value": {
+            "string": {
+                "value": ""
+            }
+        },
+        "type": "string",
+        "name": "typeName"
+    },
+    {
+        "value": {
+            "array": {
+                "elements": ""
+            }
+        },
+        "type": "Array/string",
+        "name": "typeProperties"
+    }
+]

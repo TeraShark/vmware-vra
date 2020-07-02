@@ -90,45 +90,13 @@ namespace = p.namespace;
 vROServer = p.vROServer;
 vRAServer = p.vRAServer;
 
-p.types.forEach(function(type){
-   type = cleanType(type);
-});
-
-function cleanType(type){
-    if(type.typeProperties){
-        var index = 0;
-        type.typeProperties.forEach(function(prop){
-            if (prop.toLowerCase() == "id")
-                type.typeProperties.splice(index, 1);
-            else
-                index++;
-        });
-    }
-    if(type.AWXJobTemplates){
-        type.AWXJobTemplates.forEach(function(template){
-            template.extra_vars.forEach(function(v){
-                if(v.inputReference.toLowerCase() == "id")
-                    v.inputReference = "id";
-            });
-            var idDefined = false;
-            template.outputMapping.forEach(function(o){
-                if(o.typeReference.toLowerCase() == "id"){
-                    o.typeReference = "id";
-                    idDefined = true;
-                }
-            });
-            if (!idDefined &amp;&amp; template.event == "create"){
-                System.error("You must specify an outputMapping for field 'id' on a 'create' event for any types you define");
-                throw "Missing outputMapping in 'create' event for mandatory field 'id' on type: " + type.typeName;
-            }
-        });
-    }
-    return type;
-}
+//TODO: Validate required JSON fields
 
 payload = p;
 
-System.debug("Parsed JSON...");</script>
+System.debug("Parsed JSON...");
+
+</script>
         <in-binding>
             <bind name="json" type="string" export-name="json"/>
         </in-binding>
