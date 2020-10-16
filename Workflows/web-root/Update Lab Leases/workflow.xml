@@ -100,8 +100,12 @@ System.debug(token);&#13;
 &#13;
 var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, "", "");&#13;
 var restClient = new RestClient(restHost);&#13;
+//vra 8.1: ce4fa2bd-c3e0-464c-860d-de1e9c93f9c1&#13;
+//vra 8.2: 8020fbc0-d12e-47a1-9265-c8212781ec4e&#13;
+//vsphere 7: 2423c8dc-66f1-446b-9248-9fb17a4ad20e&#13;
+//Windows Server: 1247938e-a3d6-4a3c-9621-af8c7b7b0937&#13;
 &#13;
-var deployments = ["ce4fa2bd-c3e0-464c-860d-de1e9c93f9c1", "1247938e-a3d6-4a3c-9621-af8c7b7b0937"];&#13;
+var deployments = ["ce4fa2bd-c3e0-464c-860d-de1e9c93f9c1", "1247938e-a3d6-4a3c-9621-af8c7b7b0937", "8020fbc0-d12e-47a1-9265-c8212781ec4e", "2423c8dc-66f1-446b-9248-9fb17a4ad20e"];&#13;
 deployments.forEach(function (d) {&#13;
     var request = {&#13;
         path: '/deployment/api/deployments/{deployment_id}/requests/',&#13;
@@ -151,7 +155,7 @@ deployments.forEach(function (d) {&#13;
             <bind name="requestIds" type="Properties" export-name="requestIds"/>
         </out-binding>
         <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="285.0"/>
+        <position y="60.0" x="300.0"/>
     </workflow-item>
     <workflow-item name="item3" type="task" comparator="0">
         <display-name>Authorize</display-name>
@@ -480,9 +484,9 @@ if (httpData.statusCode != 201){&#13;
     </workflow-item>
     <presentation/>
     <workflow-note x="185.0" y="38.5" w="370.0" h="63.0" color="FFFFC0">
-        <description>vRA 8.1</description>
+        <description>vRA 8.1, 8.2, Windows Server &amp; vSphere 7</description>
     </workflow-note>
     <workflow-note x="185.0" y="109.0" w="368.0" h="61.0" color="80ffff">
-        <description>CentOS &amp; vCenter</description>
+        <description>CentOS &amp; vCenter 6.7</description>
     </workflow-note>
 </ns2:workflow>

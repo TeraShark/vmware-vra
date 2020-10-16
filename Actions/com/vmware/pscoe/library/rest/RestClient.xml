@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="RestClient" result-type="Any" api-version="6.0.0" id="961aee44-c2ea-3f7f-9cef-daf2e0bcb660" version="2.5.7" allowed-operations="vef" category-name="com.vmware.pscoe.library.rest">
+<dunes-script-module name="RestClient" result-type="Any" api-version="6.0.0" id="961aee44-c2ea-3f7f-9cef-daf2e0bcb660" version="2.5.7" allowed-operations="evf" category-name="com.vmware.pscoe.library.rest">
   <script encoded="false"><![CDATA[var logger = System.getModule("com.vmware.pscoe.library.logging").getLogger("com.vmware.pscoe.library.rest.RestClient");
 
 /**

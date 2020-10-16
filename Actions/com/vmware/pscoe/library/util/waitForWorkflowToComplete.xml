@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="waitForWorkflowToComplete" result-type="Any" api-version="6.0.0" id="d6d382dd-0d1b-34bf-870b-3b1751d5e0c1" version="2.18.11" allowed-operations="vef" category-name="com.vmware.pscoe.library.util">
-  <param n="wfToken" t="Any"/>
-  <param n="sleepTime" t="Any"/>
-  <param n="timeout" t="Any"/>
+<dunes-script-module name="waitForWorkflowToComplete" result-type="Any" api-version="6.0.0" id="d6d382dd-0d1b-34bf-870b-3b1751d5e0c1" version="2.18.11" allowed-operations="evf" category-name="com.vmware.pscoe.library.util">
+  <param n="wfToken" t="Any"><![CDATA[]]></param>
+  <param n="sleepTime" t="Any"><![CDATA[]]></param>
+  <param n="timeout" t="Any"><![CDATA[]]></param>
   <script encoded="false"><![CDATA[var WorkflowTokenWrapper = System.getModule("com.vmware.pscoe.library.util").WorkflowTokenWrapper();
 var end = new Date();
 end.setSeconds(end.getSeconds() + timeout);

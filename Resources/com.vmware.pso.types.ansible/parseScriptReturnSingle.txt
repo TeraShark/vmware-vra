@@ -28,6 +28,8 @@ mapping.forEach(function(map){
 
 if(id != null)
     outputObj.id = id + "|#|" + endpointName;
+
+outputObj.setProperty("endpointName", endpointName);
     
 System.debug("object id: " + outputObj.id);
 

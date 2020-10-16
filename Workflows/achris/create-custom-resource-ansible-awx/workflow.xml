@@ -1,67 +1,65 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item12" object-name="workflow:name=generic" id="a487f857-eb74-45de-9a25-67b460d5aa07" editor-version="2.0" version="0.1.0" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
-    <display-name>create-custom-resource-ansible-awx</display-name>
-    <description>Workflow for Dynamic Types Creation (for Ansible AWX mediation) which creates all workflows for the Type and injects the Custom Resource into vRA. JSON input is a specific schema related to Ansible AWX.</description>
-    <position y="50.0" x="120.0"/>
-    <input>
-        <param name="json" type="string"/>
-    </input>
-    <output/>
-    <attrib name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition">
-        <value encoded="n"/>
-    </attrib>
-    <attrib name="token" type="string">
-        <value encoded="n"></value>
-    </attrib>
-    <attrib name="wfid_update" type="string">
-        <value encoded="n">bb3b44ee-fe9c-43fa-a246-2d4d98c1a1d4</value>
-    </attrib>
-    <attrib name="wfid_create" type="string">
-        <value encoded="n">597baeeb-abfa-43e0-87ae-eaca6a4ef8d8</value>
-    </attrib>
-    <attrib name="wfid_delete" type="string">
-        <value encoded="n">aa71e7d6-22d8-42b9-9794-f52d0c43309f</value>
-    </attrib>
-    <attrib name="icon" type="ResourceElement">
-        <value encoded="n">dunes://service.dunes.ch/ResourceElement?id='ccc63028-0b79-48ad-bf8d-4078a2d058ce'&amp;dunesName='ResourceElement'</value>
-    </attrib>
-    <attrib name="workflowStubsCategory" type="WorkflowCategory">
-        <value encoded="n">dunes://service.dunes.ch/WorkflowCategory?id='8a74805971f49d72017219ad7dfe0273'&amp;dunesName='WorkflowCategory'</value>
-    </attrib>
-    <attrib name="day2opWorkflows" type="Any">
-        <value encoded="n"/>
-    </attrib>
-    <attrib name="namespace" type="string">
-        <value encoded="n"></value>
-        <description>eg: com.company.types</description>
-    </attrib>
-    <attrib name="configurations" type="Array/ConfigurationElement">
-        <value encoded="n">[]</value>
-    </attrib>
-    <attrib name="vROServer" type="Any">
-        <value encoded="n"/>
-    </attrib>
-    <attrib name="vRAServer" type="Any">
-        <value encoded="n"/>
-    </attrib>
-    <attrib name="finderWorkflowIDs" type="Properties">
-        <value encoded="n">#[##]#</value>
-        <description>typeName: [IDs]</description>
-    </attrib>
-    <attrib name="payload" type="Any">
-        <value encoded="n"/>
-    </attrib>
-    <attrib name="actionResult" type="string">
-        <value encoded="n"></value>
-    </attrib>
-    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
-        <in-binding/>
-        <out-binding/>
-        <position y="110.0" x="120.0"/>
-    </workflow-item>
-    <workflow-item name="item9" out-name="item15" type="task" comparator="0">
-        <display-name>Create Namespace</display-name>
-        <script encoded="false">// Validate input values
+<?xml version='1.0' encoding='UTF-8'?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item12" object-name="workflow:name=generic" id="a487f857-eb74-45de-9a25-67b460d5aa07" version="0.1.0" api-version="6.0.0" allowed-operations="evf" editor-version="2.0" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[create-custom-resource-ansible-awx]]></display-name>
+  <description><![CDATA[Workflow for Dynamic Types Creation (for Ansible AWX mediation) which creates all workflows for the Type and injects the Custom Resource into vRA. JSON input is a specific schema related to Ansible AWX.]]></description>
+  <position y="50.0" x="120.0"/>
+  <input>
+    <param name="json" type="string"/>
+  </input>
+  <attrib name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="token" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="wfid_update" type="string" read-only="false">
+    <value encoded="n"><![CDATA[bb3b44ee-fe9c-43fa-a246-2d4d98c1a1d4]]></value>
+  </attrib>
+  <attrib name="wfid_create" type="string" read-only="false">
+    <value encoded="n"><![CDATA[597baeeb-abfa-43e0-87ae-eaca6a4ef8d8]]></value>
+  </attrib>
+  <attrib name="wfid_delete" type="string" read-only="false">
+    <value encoded="n"><![CDATA[aa71e7d6-22d8-42b9-9794-f52d0c43309f]]></value>
+  </attrib>
+  <attrib name="icon" type="ResourceElement" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/ResourceElement?id='ccc63028-0b79-48ad-bf8d-4078a2d058ce'&dunesName='ResourceElement']]></value>
+  </attrib>
+  <attrib name="workflowStubsCategory" type="WorkflowCategory" read-only="false">
+    <value encoded="n"><![CDATA[dunes://service.dunes.ch/WorkflowCategory?id='8a74805971f49d72017219ad7dfe0273'&dunesName='WorkflowCategory']]></value>
+  </attrib>
+  <attrib name="day2opWorkflows" type="Any" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="namespace" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+    <description><![CDATA[eg: com.company.types]]></description>
+  </attrib>
+  <attrib name="configurations" type="Array/ConfigurationElement" read-only="false">
+    <value encoded="n"><![CDATA[[]]]></value>
+  </attrib>
+  <attrib name="vROServer" type="Any" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="vRAServer" type="Any" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="finderWorkflowIDs" type="Properties" read-only="false">
+    <value encoded="n"><![CDATA[#[##]#]]></value>
+    <description><![CDATA[typeName: [IDs]]]></description>
+  </attrib>
+  <attrib name="payload" type="Any" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <attrib name="actionResult" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <workflow-item name="item0" type="end" end-mode="0">
+    <in-binding/>
+    <position y="110.0" x="120.0"/>
+  </workflow-item>
+  <workflow-item name="item9" out-name="item15" type="task">
+    <display-name><![CDATA[Create Namespace]]></display-name>
+    <script encoded="false"><![CDATA[// Validate input values
 if (namespace == null || namespace.trim().length == 0) {
   throw "Undefined namespace: namespace cannot be null or empty";
 }
@@ -72,19 +70,19 @@ if (!namespaceDef){
   System.log("Created dynamic namespace: " + namespaceDef);
 } 
 
-namespaceRef = namespaceDef;</script>
-        <in-binding>
-            <bind name="namespace" type="string" export-name="namespace"/>
-        </in-binding>
-        <out-binding>
-            <bind name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
-        </out-binding>
-        <description>Simple task with custom script capability.</description>
-        <position y="120.0" x="300.0"/>
-    </workflow-item>
-    <workflow-item name="item12" out-name="item13" type="task" comparator="0">
-        <display-name>parse JSON</display-name>
-        <script encoded="false">var p = JSON.parse(json);
+namespaceRef = namespaceDef;]]></script>
+    <in-binding>
+      <bind name="namespace" type="string" export-name="namespace"/>
+    </in-binding>
+    <out-binding>
+      <bind name="namespaceRef" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
+    </out-binding>
+    <description><![CDATA[Simple task with custom script capability.]]></description>
+    <position y="120.0" x="300.0"/>
+  </workflow-item>
+  <workflow-item name="item12" out-name="item13" type="task">
+    <display-name><![CDATA[parse JSON]]></display-name>
+    <script encoded="false"><![CDATA[var p = JSON.parse(json);
 
 namespace = p.namespace;
 vROServer = p.vROServer;
@@ -107,13 +105,21 @@ function cleanType(type) {
 //1. Any instances of "id" in typeProperties should be removed.
 //2. Any instances of "name" in typeProperties should be removed.
 //3. Any other references in the vars sections should represent "name" and "id" accordingly.
+//4. Make sure we always have "endpointName" on all types.
 
-    for (var i = 0; i &lt; type.typeProperties.length; i++) {
+    var endpointNamePresent = false;
+    for (var i = 0; i < type.typeProperties.length; i++) {
         if (type.typeProperties[i].toLowerCase() == "id" || type.typeProperties[i].toLowerCase() == "name") {
             type.typeProperties.splice(i, 1);
             i--;
             //System.debug("Removed id/name instance...");
+        }else if(type.typeProperties[i].toLowerCase() == "endpointname"){
+            type.typeProperties[i] = "endpointName";
+            endpointNamePresent = true;
         }
+    }
+    if(endpointNamePresent == false){
+        type.typePropertes.push("endpointName");
     }
     try {
         type.AWXJobTemplates.forEach(function(t){
@@ -148,22 +154,22 @@ function cleanType(type) {
 
     return type;
 
-}</script>
-        <in-binding>
-            <bind name="json" type="string" export-name="json"/>
-        </in-binding>
-        <out-binding>
-            <bind name="namespace" type="string" export-name="namespace"/>
-            <bind name="vROServer" type="Any" export-name="vROServer"/>
-            <bind name="vRAServer" type="Any" export-name="vRAServer"/>
-            <bind name="payload" type="Any" export-name="payload"/>
-        </out-binding>
-        <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="187.27272727272725"/>
-    </workflow-item>
-    <workflow-item name="item13" out-name="item9" type="task" comparator="0">
-        <display-name>Define Endpoints</display-name>
-        <script encoded="false">
+}]]></script>
+    <in-binding>
+      <bind name="json" type="string" export-name="json"/>
+    </in-binding>
+    <out-binding>
+      <bind name="namespace" type="string" export-name="namespace"/>
+      <bind name="vROServer" type="Any" export-name="vROServer"/>
+      <bind name="vRAServer" type="Any" export-name="vRAServer"/>
+      <bind name="payload" type="Any" export-name="payload"/>
+    </out-binding>
+    <description><![CDATA[Simple task with custom script capability.]]></description>
+    <position y="60.0" x="187.27272727272725"/>
+  </workflow-item>
+  <workflow-item name="item13" out-name="item9" type="task">
+    <display-name><![CDATA[Define Endpoints]]></display-name>
+    <script encoded="false"><![CDATA[
 payload.types[0].isSuppliedRoot = true;
 payload.types[0].parentType = "Endpoint";
 
@@ -224,46 +230,38 @@ function setParentTypes(types, parent){
     "authKey": "b6r4q31caadgnwatjj7e7wrva6rh7jt"
 }*/
 
-</script>
-        <in-binding>
-            <bind name="namespace" type="string" export-name="namespace"/>
-            <bind name="payload" type="Any" export-name="payload"/>
-        </in-binding>
-        <out-binding>
-            <bind name="configurations" type="Array/ConfigurationElement" export-name="configurations"/>
-            <bind name="payload" type="Any" export-name="payload"/>
-        </out-binding>
-        <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="300.0"/>
-    </workflow-item>
-    <workflow-item name="item15" out-name="item0" type="task" script-module="com.vmware.pso.types.ansible/generateAWXMediation" comparator="0">
-        <display-name>Do Magic Stuff</display-name>
-        <script encoded="false">//Auto generated script, cannot be modified !
+]]></script>
+    <in-binding>
+      <bind name="namespace" type="string" export-name="namespace"/>
+      <bind name="payload" type="Any" export-name="payload"/>
+    </in-binding>
+    <out-binding>
+      <bind name="configurations" type="Array/ConfigurationElement" export-name="configurations"/>
+      <bind name="payload" type="Any" export-name="payload"/>
+    </out-binding>
+    <description><![CDATA[Simple task with custom script capability.]]></description>
+    <position y="60.0" x="300.0"/>
+  </workflow-item>
+  <workflow-item name="item15" out-name="item0" type="task" script-module="com.vmware.pso.types.ansible/generateAWXMediation">
+    <display-name><![CDATA[Do Magic Stuff]]></display-name>
+    <script encoded="false"><![CDATA[//Auto generated script, cannot be modified !
 actionResult = System.getModule("com.vmware.pso.types.ansible").generateAWXMediation(icon,namespaceDefinition,json,workflowStubsCategory);
-</script>
-        <in-binding>
-            <bind name="icon" type="ResourceElement" export-name="icon">
-                <description></description>
-            </bind>
-            <bind name="namespaceDefinition" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef">
-                <description></description>
-            </bind>
-            <bind name="json" type="Any" export-name="payload">
-                <description></description>
-            </bind>
-            <bind name="workflowStubsCategory" type="WorkflowCategory" export-name="workflowStubsCategory">
-                <description></description>
-            </bind>
-        </in-binding>
-        <out-binding>
-            <bind name="actionResult" type="string" export-name="actionResult"/>
-        </out-binding>
-        <description>Add a note to the workflow schema.</description>
-        <position y="120.0" x="180.0"/>
-    </workflow-item>
-    <presentation>
-        <p-param name="json">
-            <desc>json</desc>
-        </p-param>
-    </presentation>
-</ns2:workflow>
+]]></script>
+    <in-binding>
+      <bind name="icon" type="ResourceElement" export-name="icon"/>
+      <bind name="namespaceDefinition" type="DynamicTypes:DynamicNamespaceDefinition" export-name="namespaceRef"/>
+      <bind name="json" type="Any" export-name="payload"/>
+      <bind name="workflowStubsCategory" type="WorkflowCategory" export-name="workflowStubsCategory"/>
+    </in-binding>
+    <out-binding>
+      <bind name="actionResult" type="string" export-name="actionResult"/>
+    </out-binding>
+    <description><![CDATA[Add a note to the workflow schema.]]></description>
+    <position y="120.0" x="180.0"/>
+  </workflow-item>
+  <presentation>
+    <p-param name="json">
+      <desc><![CDATA[json]]></desc>
+    </p-param>
+  </presentation>
+</workflow>

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="Class" result-type="Any" api-version="6.0.0" id="616de355-a5ea-3f56-a582-5b801e404966" version="2.4.7" allowed-operations="vef" category-name="com.vmware.pscoe.library.class">
+<dunes-script-module name="Class" result-type="Any" api-version="6.0.0" id="616de355-a5ea-3f56-a582-5b801e404966" version="2.4.7" allowed-operations="evf" category-name="com.vmware.pscoe.library.class">
   <description><![CDATA[Defines methods for loading and definition of classes in vRO]]></description>
   <script encoded="false"><![CDATA[var global = System.getContext() || (function () {
 	return this;

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="generateAWXBaseFinderActions" result-type="Any" api-version="6.0.0" id="101110ff-f8b0-4d5e-b733-8049ed8027f5" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="generateAWXBaseFinderActions" result-type="Any" api-version="6.0.0" id="101110ff-f8b0-4d5e-b733-8049ed8027f5" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="token" t="string"><![CDATA[]]></param>
   <param n="vROServer" t="Any"><![CDATA[]]></param>
   <param n="types" t="Any"><![CDATA[]]></param>

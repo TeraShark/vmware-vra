@@ -1,0 +1,35 @@
+var outputObj = {};
+
+
+var regexp = null;
+var result = "";
+System.debug("Iterating Mapping and Parsing Ansible output...");
+var mapping = JSON.parse(outputMapping);
+var id = null;
+mapping.forEach(function(map){
+    System.debug("Mapping property: " + map.typeReference);
+ 
+    regexp = new RegExp(map.regExp, map.regExpFlag);
+    System.debug("RegExp: " + regexp.source + " | Flags: " + map.regExpFlag);
+
+    result = responseContent.match(regexp);
+    if (result && result.length > 1){
+        System.debug("Found value: " + result[1]);
+        System.debug(map.typeReference + ":" + result[1]);
+        if(map.typeReference.toLowerCase() == "id")
+            id = result[1];
+        outputObj[map.typeReference] = result[1];
+    }
+    else{
+        System.error("Expression returned no results");
+    }
+});
+
+if(id != null)
+    outputObj.id = id + "|#|" + endpointName;
+
+outputObj.endpointName = endpointName;
+    
+System.debug("object id: " + outputObj.id);
+
+result = JSON.stringify(outputObj);

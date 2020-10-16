@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="script" result-type="void" api-version="6.0.0" id="4d1fd7d6-ec75-4ad8-aa05-be7b8f9412ea" version="0.0.0" allowed-operations="evf" category-name="cava">
+  <description><![CDATA[returns the source code for a given action reference]]></description>
+  <param n="action_reference" t="string"/>
+  <script encoded="false"><![CDATA[var module, a, b, action;
+
+/* See if a System.getModule clause was passed.
+ * Allowing a user to pass the specific clause will let vRO
+ * see it as a reference.
+ */
+
+if (action_reference.match(/^System\.getModule\("[\w\.]*\"\)\.\w+\(\)/)) {
+    a = (b = action_reference.split('"'), b[1]);
+    b = b[2].match(/\)\.(\w+)\(\)/)[1]
+} else {
+    throw 'reference string doesn\'t match action pattern (e.g. System.getModule("a.b.c").action()'
+}
+
+module = System.getModule(a);
+
+if (!module)
+    throw "module '" + a + "' not found."
+
+action = System.getModule(a).actionDescriptions.filter(function (e) { return e.name === b });
+
+if (action && action.length == 1)
+    return action[0].script
+else
+    throw "action '" + b + "' not found."
+]]></script>
+</dunes-script-module>

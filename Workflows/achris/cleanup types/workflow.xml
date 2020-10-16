@@ -1,290 +1,288 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item2" object-name="workflow:name=generic" id="3f4fe39c-5652-4498-bb83-269b112d1d49" editor-version="2.0" version="0.0.2" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
-    <display-name>cleanup types</display-name>
-    <position y="50.0" x="100.0"/>
-    <input>
-        <param name="typeName" type="string"/>
-        <param name="namespace" type="string"/>
-    </input>
-    <output/>
-    <attrib name="token" type="string">
-        <value encoded="n"></value>
-    </attrib>
-    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
-        <in-binding/>
-        <out-binding/>
-        <position y="50.0" x="460.0"/>
-    </workflow-item>
-    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
-        <display-name>Clean up</display-name>
-        <script encoded="false">var wfIds = [];&#13;
-&#13;
-if ((namespace.length &gt; 6) &amp;&amp; (typeName.length &gt; 3 || typeName == "*")){&#13;
-    DynamicTypesManager.removeAll();&#13;
-    System.debug("Deleted all Types...");&#13;
-    &#13;
-    System.debug("Finding Associated Workflows...");&#13;
-    var wfs = Server.findAllForType("Workflow");&#13;
-    for each(var wf in wfs){&#13;
-        if (typeName == "*"){&#13;
-            if (wf.name.indexOf(namespace) &gt;= 0){&#13;
-                System.debug("Found WF: " + wf.id + "|" + wf.name);&#13;
-                wfIds.push(wf.id);&#13;
-        }&#13;
-        }else{&#13;
-            if (wf.name.indexOf(typeName)&gt;= 0){&#13;
-                System.debug("Found WF: " + wf.id + "|" + wf.name);&#13;
-                wfIds.push(wf.id);&#13;
-            }&#13;
-        }&#13;
-    }&#13;
-}&#13;
-else{&#13;
-    throw "TypeName and Namespace length must be &gt; 4 - possible danger!";&#13;
-}&#13;
-&#13;
-//Remove Configurations:&#13;
-try{&#13;
-   &#13;
-    var cat = Server.getConfigurationElementCategoryWithPath(namespace);&#13;
-    if (cat)&#13;
-        Server.removeConfigurationElementCategory(cat);&#13;
-    cat = Server.getConfigurationElementCategoryWithPath(namespace + ".Endpoints");&#13;
-    if (cat)&#13;
-        Server.removeConfigurationElementCategory(cat);&#13;
-&#13;
-    if(typeName == "*"){&#13;
-        Server.getAllConfigurationElementCategories().forEach(function (cat){&#13;
-            //System.debug(cat.name);&#13;
-            if(cat.name.indexOf(namespace) == 0){&#13;
-                System.debug("Deleting Configuration: " + cat.name);&#13;
-                Server.removeConfigurationElementCategory(cat);&#13;
-            }&#13;
-        });&#13;
-    }&#13;
-&#13;
-    System.debug("Removed Configurations for: " + namespace);&#13;
-    &#13;
-} catch(e){ System.debug("Error deleting Configs: " + e.toString());}&#13;
-&#13;
-//delete each workflow:&#13;
-//https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/ac202aba-5d0c-4e54-8390-1fae9dff3ec9&#13;
-&#13;
-var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
-var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
-&#13;
-&#13;
-var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
-var endpointName = "vRA";&#13;
-var requestContent = {};&#13;
-requestContent.username = "configadmin";&#13;
-requestContent.password = "VMware1!";&#13;
-&#13;
-var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
-var restClient = new RestClient(restHost);&#13;
-System.debug("Deleting " + wfIds.length + " Workflows...");&#13;
-wfIds.forEach(function(id){&#13;
-    System.debug("Deleting Workflow: " + id);&#13;
-    _delete('/vco-controlcenter/client/api/platform/workflows/{wfId}', [id]);&#13;
-});&#13;
-&#13;
-&#13;
-///vco-controlcenter/client/api/platform/categories/8a7480e9721eb53d01729eeddba430e1&#13;
-&#13;
-&#13;
-//System.debug(httpData.contentAsString);&#13;
-&#13;
-var actionCat = "";&#13;
-&#13;
-var json = JSON.parse(_get('/vco-controlcenter/client/api/platform/categories', []));&#13;
-try{&#13;
-    json.link.forEach(function(link){&#13;
-        var found = false;&#13;
-        link.attributes.forEach(function(attrib){&#13;
-            if(attrib.name == "name" &amp;&amp; attrib.value == namespace){&#13;
-                System.debug("found Cat, getting id...");&#13;
-                found = true;&#13;
-            }&#13;
-            if(found &amp;&amp; attrib.name == "id"){&#13;
-                actionCat = attrib.value;&#13;
-                throw "found";&#13;
-            }&#13;
-&#13;
-        });&#13;
-    });&#13;
-}&#13;
-catch(e){}&#13;
-System.debug(actionCat);&#13;
-&#13;
-json = JSON.parse(_get('/vco-controlcenter/client/api/platform/categories/{id}', [actionCat]));&#13;
-//System.debug(JSON.stringify(json));&#13;
-&#13;
-/*{&#13;
-  "href": "https://cava-6-240-202.eng.vmware.com:443/vco-controlcenter/client/api/platform/categories/8a74805971f49d72017218511653015b/",&#13;
-  "relations": {&#13;
-    "link": [&#13;
-      {&#13;
-        "attributes": [&#13;
-          {&#13;
-            "value": "1e862838-a615-304b-8401-8d2532564c64",&#13;
-            "name": "id"&#13;
-          },&#13;
-          {&#13;
-            "value": "ScriptModule",&#13;
-            "name": "type"&#13;
-          },&#13;
-          {&#13;
-            "value": "AssertValidator",&#13;
-            "name": "name"&#13;
-          },&#13;
-          {&#13;
-            "value": "Wrapper around the Validator. Provides custom error messages to be thrown if the validation fails.",&#13;
-            "name": "description"&#13;
-          }&#13;
-        ],&#13;
-        "href": "https://cava-6-240-202.eng.vmware.com:443/vco-controlcenter/client/api/platform/actions/1e862838-a615-304b-8401-8d2532564c64/",&#13;
-        "rel": "down"&#13;
-      }, */&#13;
-&#13;
-var filtered = [];&#13;
-if(json.relations &amp;&amp; json.relations.link){&#13;
-    filtered = json.relations.link.filter(function (link){&#13;
-        if(link.attributes){&#13;
-          //console.debug(link.attributes);&#13;
-          return link.attributes.filter(function (attribute){&#13;
-              return attribute.name == "type" &amp;&amp; attribute.value == "ScriptModule";&#13;
-          } ).length &gt; 0;&#13;
-        }&#13;
-        return true;&#13;
-    });&#13;
-}&#13;
-&#13;
-var ids = [];&#13;
-filtered.forEach(function(link){&#13;
-  if(link.attributes){&#13;
-    link.attributes.forEach(function(attrib){&#13;
-      if(attrib.name == "id")&#13;
-        ids.push(attrib.value);&#13;
-    });&#13;
-  }&#13;
-});&#13;
-&#13;
-System.debug("Deleting " + ids.length + " Actions...");&#13;
-ids.forEach(function(actionId){&#13;
-    System.debug("Deleting Action: " + actionId)&#13;
-    _delete('/vco-controlcenter/client/api/platform/actions/{actionId}', [actionId]);&#13;
-});&#13;
-&#13;
-&#13;
-function _get(path, params){&#13;
-    System.debug("Fetching Object via API... ");&#13;
-    var request = createQueryRequest(path, params);&#13;
-    var httpData = restClient.get(request.path, request.params, request.options);&#13;
-    if (httpData.statusCode != 200){&#13;
-        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
-    }&#13;
-    return httpData.contentAsString;&#13;
-}&#13;
-&#13;
-function _delete(path, params){&#13;
-    &#13;
-    System.debug("Deleting Object via API... ");&#13;
-    var request = createQueryRequest(path, params);&#13;
-    var httpData = restClient.delete(request.path, request.params, request.options);&#13;
-    if (httpData.statusCode != 200){&#13;
-        throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
-    }&#13;
-    return httpData.contentAsString;&#13;
-}&#13;
-&#13;
-function createQueryRequest(path, params){&#13;
-    return {&#13;
-        path: path,&#13;
-        params: params,&#13;
-        options: {&#13;
-            skipEncodeParams: true,	&#13;
-            returnResponseObject: true,		&#13;
-            returnResponseObjectForReal: false, 	&#13;
-            stringifyJsonContent: false,	&#13;
-            interpretResponseCode: false,	&#13;
-            headers: {&#13;
-                //'Content-Type': 'application/json',&#13;
-                'Accept': 'application/json',&#13;
-                'Authorization': 'Bearer ' + token&#13;
-            },&#13;
-            errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
-                numberOfRetries: 3,			//Number of retries&#13;
-                retryWaitInterval: 15,			//Polling interval in seconds&#13;
-                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
-            }&#13;
-        }&#13;
-    };&#13;
-}&#13;
-&#13;
-</script>
-        <in-binding>
-            <bind name="typeName" type="string" export-name="typeName"/>
-            <bind name="token" type="string" export-name="token"/>
-            <bind name="namespace" type="string" export-name="namespace"/>
-        </in-binding>
-        <out-binding/>
-        <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="300.0"/>
-    </workflow-item>
-    <workflow-item name="item2" out-name="item1" type="task" comparator="0">
-        <display-name>Token</display-name>
-        <script encoded="false">&#13;
-var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();&#13;
-var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();&#13;
-&#13;
-&#13;
-var endpointUrl = "https://cava-6-240-202.eng.vmware.com";&#13;
-var endpointName = "vRA";&#13;
-var requestContent = {};&#13;
-requestContent.username = "configadmin";&#13;
-requestContent.password = "VMware1!";&#13;
-&#13;
-var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); &#13;
-var restClient = new RestClient(restHost);&#13;
-&#13;
-var request = {&#13;
-    path: '/csp/gateway/am/api/login?access_token=',&#13;
-    params: [],&#13;
-    content: JSON.stringify(requestContent),&#13;
-    options: {&#13;
-        skipEncodeParams: true,	&#13;
-        returnResponseObject: true,		&#13;
-        returnResponseObjectForReal: false, 	&#13;
-        stringifyJsonContent: false,	&#13;
-        interpretResponseCode: false,	&#13;
-        headers: {&#13;
-            'Content-Type': 'application/json',&#13;
-            'Accept': 'application/json'&#13;
-        },&#13;
-        errorHandler: {					//Defines a retry mechanism in case of failed requests&#13;
-            numberOfRetries: 3,			//Number of retries&#13;
-            retryWaitInterval: 15,			//Polling interval in seconds&#13;
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])&#13;
-        }&#13;
-    }&#13;
-};&#13;
-System.debug("Calling API...");&#13;
-//var urlTemplate = "workflows/{id}";&#13;
-&#13;
-var httpData = restClient.post(request.path, request.params, request.content, request.options);&#13;
-if (httpData.statusCode != 200){&#13;
-    throw "Error calling API. Received Status Code: " + httpData.statusCode;&#13;
-}&#13;
-var access_token = JSON.parse(httpData.contentAsString).access_token;&#13;
-token = access_token;&#13;
-&#13;
-</script>
-        <in-binding/>
-        <out-binding>
-            <bind name="token" type="string" export-name="token"/>
-        </out-binding>
-        <description>Simple task with custom script capability.</description>
-        <position y="60.0" x="180.0"/>
-    </workflow-item>
-    <presentation/>
-</ns2:workflow>
+<?xml version='1.0' encoding='UTF-8'?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item2" object-name="workflow:name=generic" id="3f4fe39c-5652-4498-bb83-269b112d1d49" version="0.0.2" api-version="6.0.0" allowed-operations="evf" editor-version="2.0" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[cleanup types]]></display-name>
+  <position y="50.0" x="100.0"/>
+  <input>
+    <param name="typeName" type="string"/>
+    <param name="namespace" type="string"/>
+  </input>
+  <attrib name="token" type="string" read-only="false">
+    <value encoded="n"><![CDATA[]]></value>
+  </attrib>
+  <workflow-item name="item0" type="end" end-mode="0">
+    <in-binding/>
+    <position y="50.0" x="460.0"/>
+  </workflow-item>
+  <workflow-item name="item1" out-name="item0" type="task">
+    <display-name><![CDATA[Clean up]]></display-name>
+    <script encoded="false"><![CDATA[var wfIds = [];
+
+if ((namespace.length > 6) && (typeName.length > 3 || typeName == "*")){
+    DynamicTypesManager.removeAll();
+    System.debug("Deleted all Types...");
+    
+    System.debug("Finding Associated Workflows...");
+    var wfs = Server.findAllForType("Workflow");
+    for each(var wf in wfs){
+        if (typeName == "*"){
+            if (wf.name.indexOf(namespace) >= 0){
+                System.debug("Found WF: " + wf.id + "|" + wf.name);
+                wfIds.push(wf.id);
+        }
+        }else{
+            if (wf.name.indexOf(typeName)>= 0){
+                System.debug("Found WF: " + wf.id + "|" + wf.name);
+                wfIds.push(wf.id);
+            }
+        }
+    }
+}
+else{
+    throw "TypeName and Namespace length must be > 4 - possible danger!";
+}
+
+//Remove Configurations:
+try{
+   
+    var cat = Server.getConfigurationElementCategoryWithPath(namespace);
+    if (cat)
+        Server.removeConfigurationElementCategory(cat);
+    cat = Server.getConfigurationElementCategoryWithPath(namespace + ".Endpoints");
+    if (cat)
+        Server.removeConfigurationElementCategory(cat);
+
+    if(typeName == "*"){
+        Server.getAllConfigurationElementCategories().forEach(function (cat){
+            //System.debug(cat.name);
+            if(cat.name.indexOf(namespace) == 0){
+                System.debug("Deleting Configuration: " + cat.name);
+                Server.removeConfigurationElementCategory(cat);
+            }
+        });
+    }
+
+    System.debug("Removed Configurations for: " + namespace);
+    
+} catch(e){ System.debug("Error deleting Configs: " + e.toString());}
+
+//delete each workflow:
+//https://cava-6-240-202.eng.vmware.com/vco-controlcenter/client/api/platform/workflows/ac202aba-5d0c-4e54-8390-1fae9dff3ec9
+
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+
+var endpointUrl = "https://cava-6-244-082.eng.vmware.com";
+var endpointName = "vRA";
+var requestContent = {};
+requestContent.username = "configadmin";
+requestContent.password = "VMware1!";
+
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); 
+var restClient = new RestClient(restHost);
+System.debug("Deleting " + wfIds.length + " Workflows...");
+wfIds.forEach(function(id){
+    System.debug("Deleting Workflow: " + id);
+    _delete('/vco-controlcenter/client/api/platform/workflows/{wfId}', [id]);
+});
+
+
+///vco-controlcenter/client/api/platform/categories/8a7480e9721eb53d01729eeddba430e1
+
+
+//System.debug(httpData.contentAsString);
+
+var actionCat = "";
+
+var json = JSON.parse(_get('/vco-controlcenter/client/api/platform/categories', []));
+try{
+    json.link.forEach(function(link){
+        var found = false;
+        link.attributes.forEach(function(attrib){
+            if(attrib.name == "name" && attrib.value == namespace){
+                System.debug("found Cat, getting id...");
+                found = true;
+            }
+            if(found && attrib.name == "id"){
+                actionCat = attrib.value;
+                throw "found";
+            }
+
+        });
+    });
+}
+catch(e){}
+System.debug(actionCat);
+
+json = JSON.parse(_get('/vco-controlcenter/client/api/platform/categories/{id}', [actionCat]));
+//System.debug(JSON.stringify(json));
+
+/*{
+  "href": "https://cava-6-240-202.eng.vmware.com:443/vco-controlcenter/client/api/platform/categories/8a74805971f49d72017218511653015b/",
+  "relations": {
+    "link": [
+      {
+        "attributes": [
+          {
+            "value": "1e862838-a615-304b-8401-8d2532564c64",
+            "name": "id"
+          },
+          {
+            "value": "ScriptModule",
+            "name": "type"
+          },
+          {
+            "value": "AssertValidator",
+            "name": "name"
+          },
+          {
+            "value": "Wrapper around the Validator. Provides custom error messages to be thrown if the validation fails.",
+            "name": "description"
+          }
+        ],
+        "href": "https://cava-6-240-202.eng.vmware.com:443/vco-controlcenter/client/api/platform/actions/1e862838-a615-304b-8401-8d2532564c64/",
+        "rel": "down"
+      }, */
+
+var filtered = [];
+if(json.relations && json.relations.link){
+    filtered = json.relations.link.filter(function (link){
+        if(link.attributes){
+          //console.debug(link.attributes);
+          return link.attributes.filter(function (attribute){
+              return attribute.name == "type" && attribute.value == "ScriptModule";
+          } ).length > 0;
+        }
+        return true;
+    });
+}
+
+var ids = [];
+filtered.forEach(function(link){
+  if(link.attributes){
+    link.attributes.forEach(function(attrib){
+      if(attrib.name == "id")
+        ids.push(attrib.value);
+    });
+  }
+});
+
+System.debug("Deleting " + ids.length + " Actions...");
+ids.forEach(function(actionId){
+    System.debug("Deleting Action: " + actionId)
+    _delete('/vco-controlcenter/client/api/platform/actions/{actionId}', [actionId]);
+});
+
+
+function _get(path, params){
+    System.debug("Fetching Object via API... ");
+    var request = createQueryRequest(path, params);
+    var httpData = restClient.get(request.path, request.params, request.options);
+    if (httpData.statusCode != 200){
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;
+    }
+    return httpData.contentAsString;
+}
+
+function _delete(path, params){
+    
+    System.debug("Deleting Object via API... ");
+    var request = createQueryRequest(path, params);
+    var httpData = restClient.delete(request.path, request.params, request.options);
+    if (httpData.statusCode != 200){
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;
+    }
+    return httpData.contentAsString;
+}
+
+function createQueryRequest(path, params){
+    return {
+        path: path,
+        params: params,
+        options: {
+            skipEncodeParams: true,	
+            returnResponseObject: true,		
+            returnResponseObjectForReal: false, 	
+            stringifyJsonContent: false,	
+            interpretResponseCode: false,	
+            headers: {
+                //'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization': 'Bearer ' + token
+            },
+            errorHandler: {					//Defines a retry mechanism in case of failed requests
+                numberOfRetries: 3,			//Number of retries
+                retryWaitInterval: 15,			//Polling interval in seconds
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+            }
+        }
+    };
+}
+
+]]></script>
+    <in-binding>
+      <bind name="typeName" type="string" export-name="typeName"/>
+      <bind name="token" type="string" export-name="token"/>
+      <bind name="namespace" type="string" export-name="namespace"/>
+    </in-binding>
+    <out-binding/>
+    <description><![CDATA[Simple task with custom script capability.]]></description>
+    <position y="60.0" x="300.0"/>
+  </workflow-item>
+  <workflow-item name="item2" out-name="item1" type="task">
+    <display-name><![CDATA[Token]]></display-name>
+    <script encoded="false"><![CDATA[
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+
+var endpointUrl = "https://cava-6-244-082.eng.vmware.com";
+var endpointName = "vRA";
+var requestContent = {};
+requestContent.username = "configadmin";
+requestContent.password = "VMware1!";
+
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); 
+var restClient = new RestClient(restHost);
+
+var request = {
+    path: '/csp/gateway/am/api/login?access_token=',
+    params: [],
+    content: JSON.stringify(requestContent),
+    options: {
+        skipEncodeParams: true,	
+        returnResponseObject: true,		
+        returnResponseObjectForReal: false, 	
+        stringifyJsonContent: false,	
+        interpretResponseCode: false,	
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        errorHandler: {					//Defines a retry mechanism in case of failed requests
+            numberOfRetries: 3,			//Number of retries
+            retryWaitInterval: 15,			//Polling interval in seconds
+            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+        }
+    }
+};
+System.debug("Calling API...");
+//var urlTemplate = "workflows/{id}";
+
+var httpData = restClient.post(request.path, request.params, request.content, request.options);
+if (httpData.statusCode != 200){
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;
+}
+var access_token = JSON.parse(httpData.contentAsString).access_token;
+token = access_token;
+
+]]></script>
+    <in-binding/>
+    <out-binding>
+      <bind name="token" type="string" export-name="token"/>
+    </out-binding>
+    <description><![CDATA[Simple task with custom script capability.]]></description>
+    <position y="60.0" x="180.0"/>
+  </workflow-item>
+  <presentation/>
+</workflow>

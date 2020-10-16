@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="pushTypeTovRA" result-type="string" api-version="6.0.0" id="9c2f9bb3-76a9-4f46-9830-fad310efe52e" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="pushTypeTovRA" result-type="string" api-version="6.0.0" id="9c2f9bb3-76a9-4f46-9830-fad310efe52e" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="vRAServer" t="Any"><![CDATA[]]></param>
   <param n="typeWorkflows" t="Any"><![CDATA[]]></param>
   <param n="token" t="string"><![CDATA[]]></param>

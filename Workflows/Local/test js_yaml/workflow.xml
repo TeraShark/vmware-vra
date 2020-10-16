@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item2" object-name="workflow:name=generic" id="601fc323-ddce-4604-8cc8-1341d7cffbe8" version="0.0.2" api-version="6.0.0" allowed-operations="vfe" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[test js_yaml]]></display-name>
+  <position y="50.0" x="100.0"/>
+  <input>
+    <param name="yaml" type="Text"/>
+  </input>
+  <attrib name="_yaml" type="Text" read-only="false">
+    <value encoded="n"><![CDATA[formatVersion: 1
+inputs:
+  user_password:
+    type: string
+    description: Password for the 'ubuntu' user. Default is 'ubuntu/ubuntu'
+    default: ubuntu
+    title: Default user's password
+    encrypted: true
+  size:
+    type: string
+    enum:
+      - small
+      - medium
+      - large
+    default: small
+    title: Size
+resources:
+  UbuntuServerCloudImg:
+    type: Cloud.vSphere.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 0
+    properties:
+      imageRef: 'https://cloud-images.ubuntu.com/releases/focal/release/ubuntu-20.04-server-cloudimg-amd64.ova'
+      #image: ubuntu-20.04-server-cloudimg-amd64
+      flavor: '${input.size}'
+      ovfProperties:
+        - key: instance-id
+          value: '${uuid()}'
+        - key: hostname
+          value: '${self.resourceName}'
+      cloudConfig: |
+        #cloud-config
+        ssh_pwauth: yes
+        chpasswd:
+          list: |
+            root:vmware1`
+            ubuntu:${input.user_password}
+          expire: false
+        write_files:
+          - path: /etc/netplan/99-netcfg-vrac.yaml
+            content: |
+              network:
+                version: 2
+                renderer: networkd
+                ethernets:
+                  ens192:
+                    dhcp4: no
+                    dhcp6: no
+                    addresses:
+                      - ${resource.UbuntuServerCloudImg.networks[0].address}/${resource.Cloud_vSphere_Network_1.prefixLength}
+                    gateway4: ${resource.Cloud_vSphere_Network_1.gateway}
+                    nameservers:
+                      search: ${resource.Cloud_vSphere_Network_1.dnsSearchDomains}
+                      addresses: ${resource.Cloud_vSphere_Network_1.dns}
+                      
+        runcmd:
+          - netplan apply
+          - nohup /bin/bash -c 'cloud-init status --wait && hostnamectl set-hostname --static `dig -x ${self.networks[0].address} +short | cut -d "." -f 1`' &
+          - hostnamectl set-hostname --pretty ${self.resourceName}
+          - touch /etc/cloud/cloud-init.disabled
+      networks:
+        - network: '${resource.Cloud_vSphere_Network_1.id}'
+          assignment: static
+  Cloud_vSphere_Network_1:
+    type: Cloud.vSphere.Network
+    metadata:
+      layoutPosition:
+        - 1
+        - 0
+    properties:
+      networkType: existing
+      constraints:
+        - tag: 'static-ip:hard'
+]]></value>
+    <description><![CDATA[Ubuntu 20.04 LTS Server ]]></description>
+  </attrib>
+  <workflow-item name="item0" type="end" end-mode="0">
+    <position y="45.40909090909091" x="524.5"/>
+  </workflow-item>
+  <workflow-item name="item1" out-name="item0" type="task">
+    <display-name><![CDATA[parse]]></display-name>
+    <script encoded="false"><![CDATA[/* libs */
+const bundle = System.getModule("cava").bundle(),
+  JS_YAML = bundle('System.getModule("bundles").js_yaml()');
+
+System.log(Object.keys(JS_YAML));
+
+System.log(JSON.stringify(JS_YAML.load(_yaml),null,2));]]></script>
+    <in-binding>
+      <bind name="_yaml" type="Text" export-name="_yaml"/>
+    </in-binding>
+    <out-binding/>
+    <position y="55.40909090909091" x="344.5"/>
+  </workflow-item>
+  <workflow-item name="item2" out-name="item1" type="task">
+    <display-name><![CDATA[defaults]]></display-name>
+    <script encoded="false"><![CDATA[_yaml = yaml || _yaml;]]></script>
+    <in-binding>
+      <bind name="yaml" type="Text" export-name="yaml"/>
+      <bind name="_yaml" type="Text" export-name="_yaml"/>
+    </in-binding>
+    <out-binding>
+      <bind name="_yaml" type="Text" export-name="_yaml"/>
+    </out-binding>
+    <position y="55.40909090909091" x="204.5"/>
+  </workflow-item>
+  <presentation>
+    <p-param name="yaml">
+      <desc><![CDATA[yaml]]></desc>
+    </p-param>
+  </presentation>
+</workflow>

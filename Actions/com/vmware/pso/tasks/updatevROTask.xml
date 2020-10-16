@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="updatevROTask" result-type="string" api-version="6.0.0" id="fd8a9eae-cb3d-4133-9715-4c377dd16638" version="0.0.0" category-name="com.vmware.pso.tasks">
+  <script encoded="false"><![CDATA[
+var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+var endpointUrl = "https://cava-6-240-202.eng.vmware.com";
+var endpointName = "vRO";
+var requestContent = {};
+requestContent.username = "configadmin";
+requestContent.password = "VMware1!";
+
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, requestContent.username, requestContent.password); 
+var restClient = new RestClient(restHost);
+
+var token = getToken();
+System.debug("Got token");
+
+System.debug(getTasks());
+
+function getToken() {
+    var request = {
+        path: '/csp/gateway/am/api/login?access_token=',
+        params: [],
+        content: JSON.stringify(requestContent),
+        options: {
+            skipEncodeParams: true,
+            returnResponseObject: true,
+            returnResponseObjectForReal: false,
+            stringifyJsonContent: false,
+            interpretResponseCode: false,
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            errorHandler: {					//Defines a retry mechanism in case of failed requests
+                numberOfRetries: 3,			//Number of retries
+                retryWaitInterval: 15,			//Polling interval in seconds
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+            }
+        }
+    };
+    System.debug("Calling API...");
+    //var urlTemplate = "workflows/{id}";
+
+    var httpData = restClient.post(request.path, request.params, request.content, request.options);
+    if (httpData.statusCode != 200) {
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;
+    }
+    var access_token = JSON.parse(httpData.contentAsString).access_token;
+    return access_token;
+}
+
+
+
+function getTasks() {
+    var request = {
+        path: '/vco/api/tasks',
+        params: [],
+        //content: {},
+        options: {
+            skipEncodeParams: true,
+            returnResponseObject: true,
+            returnResponseObjectForReal: false,
+            stringifyJsonContent: false,
+            interpretResponseCode: false,
+            headers: {
+                //'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                //'Authorization': 'Bearer ' + token
+            },
+            errorHandler: {					//Defines a retry mechanism in case of failed requests
+                numberOfRetries: 3,			//Number of retries
+                retryWaitInterval: 15,			//Polling interval in seconds
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+            }
+        }
+    };
+    System.debug("Getting tasks...");
+  
+
+    var httpData = restClient.get(request.path, request.params, request.content, request.options);
+    if (httpData.statusCode != 201 && httpData.statusCode != 200) {
+        System.debug(JSON.stringify(request));
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;
+    }
+    System.debug(httpData.statusCode);
+    return httpData.contentAsString;
+}
+]]></script>
+</dunes-script-module>

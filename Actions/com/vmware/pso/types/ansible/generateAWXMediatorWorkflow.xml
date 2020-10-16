@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="generateAWXMediatorWorkflow" result-type="Any" api-version="6.0.0" id="d4d22b41-7099-47e8-97ad-9989bea8f7ee" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="generateAWXMediatorWorkflow" result-type="Any" api-version="6.0.0" id="d4d22b41-7099-47e8-97ad-9989bea8f7ee" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="token" t="string"><![CDATA[]]></param>
   <param n="AWXJobTemplate" t="Any"><![CDATA[]]></param>
   <param n="vROServer" t="Any"><![CDATA[]]></param>
@@ -95,10 +95,19 @@ switch (eventName) {
                 }
             ]
         };
+        var endpointNamePresent = false;
+        System.debug("Building inputs for " + AWXJobTemplate.extra_vars.length + " extra_vars");
         AWXJobTemplate.extra_vars.forEach(function (e) {
+            System.debug(e.inputReference);
             inputs.param.push({ "name": e.inputReference, "type": "string" });
+            if(e.inputReference.toLowerCase() == "endpointName")
+                endpointNamePresent = true;
         });
-        inputs.param.push({ "name": "endpointName", "type": "string" });
+        if(endpointNamePresent == false){
+            System.debug("adding enpointName to extra_vars input...");
+            inputs.param.push({ "name": "endpointName", "type": "string" });
+        }
+        System.debug("Finding return script for 'create' Event...");
         parseScript = getResourceContent("ReturnScript_create.txt");
         break;
     case "update":
@@ -148,12 +157,14 @@ switch (eventName) {
 
 var typeNamesAttrib = [];
 
+System.debug("Building Attributes for each type Property...")
 typeJSON.typeProperties.forEach(function (str) {
     typeNamesAttrib.push({ "string": { "value": str } });
 });
 
+System.debug("Fetching Attributes template...");
 var attribs = JSON.parse(getResourceContent("wfattribs.json"));
-
+System.debug("Setting attributes for type: " + typeJSON.typeName + "...");
 attribs.forEach(function (a) {
     switch (a.name) {
         case "outputMapping":
@@ -187,8 +198,9 @@ if (AWXJobTemplate.event.toLowerCase() == "create") {
         }
     }
 }
-
+System.debug("Fetching Workflow items template...");
 var wfItems = JSON.parse(getResourceContent("wfitems.json"));
+System.debug("Setting scriptable task inputs and outputs...");
 wfItems.forEach(function (w) {
     switch (w["display-name"]) {
         case "Parse & Assign":

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="DefaultHostManagedAuth" result-type="Any" api-version="6.0.0" id="55f00eb6-1017-3c0e-a3aa-9345bb8a68f4" version="2.5.7" allowed-operations="vef" category-name="com.vmware.pscoe.library.rest.auth">
+<dunes-script-module name="DefaultHostManagedAuth" result-type="Any" api-version="6.0.0" id="55f00eb6-1017-3c0e-a3aa-9345bb8a68f4" version="2.5.7" allowed-operations="evf" category-name="com.vmware.pscoe.library.rest.auth">
   <script encoded="false"><![CDATA[function DefaultHostManagedAuth() {
 // no-need args
 };

@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="generateAWXDay2Workflows" result-type="Properties" api-version="6.0.0" id="034a899a-f4fc-4f46-b010-887bb9d42167" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="generateAWXDay2Workflows" result-type="Properties" api-version="6.0.0" id="034a899a-f4fc-4f46-b010-887bb9d42167" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="vROServer" t="Any"><![CDATA[]]></param>
   <param n="typeJson" t="Any"><![CDATA[]]></param>
   <param n="namespace" t="string"><![CDATA[]]></param>
@@ -10,10 +10,10 @@ var Day2Operations = typeJson.day2Operations;
 var typeWorkflows = new Properties();
 
 if (Day2Operations == null || Day2Operations.length == 0) {
-    System.log("Skipping Day2 Workflow creation - none specified in input JSON...")
+    System.log("Skipping Day2 Workflow creation - none specified in input JSON...");
 }
 else {
-   
+
     //========================== Template ========================
     var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
     var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
@@ -58,7 +58,7 @@ else {
 
     //========================== End Template ========================
 
-    
+
 
     var templates = typeJson.AWXJobTemplates;
     var template = null;
@@ -67,12 +67,15 @@ else {
     System.debug("Creating Workflows for Day 2 Operations...");
     var orig = httpData.contentAsString;
 
-    for each(var op in Day2Operations) {
+
+    Day2Operations.forEach(function (op) {
         request = null;
         template = null;
 
         System.debug("Iterating AWXTemplates from JSON to find \"" + op.eventName + "\" event template...");
-        for each(var _template in templates) {
+
+        for (var i = 0; i < templates.length; i++) {
+            var _template = templates[i];
             if (_template.event.toLowerCase() == op.eventName.toLowerCase()) {
                 template = _template;
                 System.debug("Found \"" + op.eventName + "\" template...");
@@ -99,270 +102,99 @@ else {
             wfContent["display-name"] = newWfName;
             var inputs = { "param": [] };
 
-
-            for each(var prop in op.inputs) {
+            op.inputs.forEach(function (prop) {
                 inputs.param.push({ "name": prop, "type": "string" });
-            }
+            });
 
             System.debug("Compiling objects for Workflow content...");
 
-            var extra_vars_script = 'var evars = {"extra_vars":{}};\r\n';
-
-            for each(var e in template.extra_vars) {
-                extra_vars_script += 'evars.extra_vars.' + e.name + ' = ' + e.inputReference + ';\r\n';
-            }
-            extra_vars_script += "extra_vars = JSON.stringify(evars);";
+            var extra_vars_in_binding = [];
+            var extra_vars_script = generateExtraVarsScript(template, extra_vars_in_binding);
 
             var typeNamesAttrib = [];
-            var extra_vars_in_binding = [];
-
-            for each(var str in typeJson.typeProperties) {
+            typeJson.typeProperties.forEach(function (str) {
                 typeNamesAttrib.push({ "string": { "value": str } });
-                extra_vars_in_binding.push({ "name": str, "type": "string", "export-name": str });
-            }
+            });
 
-            var attribs = [
-                {
-                    "value": {
-                        "string": {
-                            "value": ""
-                        }
-                    },
-                    "type": "string",
-                    "name": "responseContent"
-                },
-                {
-                    "value": {
-                        "string": {
-                            "value": JSON.stringify(template.outputMapping)
-                        }
-                    },
-                    "type": "string",
-                    "name": "outputMapping"
-                },
-                {
-                    "value": {
-                        "string": {
-                            "value": JSON.stringify(template.extra_vars)
-                        }
-                    },
-                    "type": "string",
-                    "name": "extra_vars"
-                },
-                {
-                    "value": {
-                        "string": {
-                            "value": template.templateId
-                        }
-                    },
-                    "type": "string",
-                    "name": "templateId"
-                },
-                {
-                    "value": {
-                        "string": {
-                            "value": namespace
-                        }
-                    },
-                    "type": "string",
-                    "name": "namespace"
-                },
-                {
-                    "value": {
-                        "string": {
-                            "value": typeJson.typeName
-                        }
-                    },
-                    "type": "string",
-                    "name": "typeName"
-                },
-                {
-                    "value": {
-                        "array": {
-                            "elements": typeNamesAttrib
-                        }
-                    },
-                    "type": "Array/string",
-                    "name": "typeProperties"
-                }
-            ];
 
             var outputs = {
-                "param": [
-                    {
-                        "name": "result",
-                        "type": "DynamicTypes:" + namespace + "." + typeJson.typeName
-                    }
-                ]
+                "param": [{
+                    "name": "result",
+                    "type": "string"
+                }]
             };
+            var idIncluded = false;
 
-            var wfItems = [
-                {
-                    "in-binding": {},
-                    "out-binding": {},
-                    "position": {
-                        "y": 50.0,
-                        "x": 460.0
-                    },
-                    "name": "item0",
-                    "type": "end",
-                    "end-mode": "0",
-                    "comparator": 0
-                },
-                {
-                    "display-name": "Parse & Assign",
-                    "script": {
-                        "value": "var outputObj = DynamicTypesManager.makeObject(namespace, typeName, \"1\", typeName, typeProperties);\r\n\r\nvar regexp = null;\r\nvar result = \"\";\r\nSystem.debug(\"Iterating Mapping and Parsing Ansible output...\");\r\nvar mapping = JSON.parse(outputMapping);\r\nfor each(var map in mapping){\r\n    System.debug(\"Mapping property: \" + map.typeReference);\r\n    regexp = new RegExp(map.regExp, map.regExpFlag);\r\n    System.debug(\"RegExp: \" + regexp.source + \" | Flags: \" + map.regExpFlag);\r\n\r\n    result = responseContent.match(regexp);\r\n    if (result && result.length > 1){\r\n        System.debug(\"Found value: \" + result[1]);\r\n        System.debug(map.typeReference + \":\" + result[1]);\r\n        \r\n        outputObj.setProperty(map.typeReference, result[1]);\r\n    }\r\n    else{\r\n        System.error(\"Expression returned no results\");\r\n    }\r\n}\r\n\r\nresult = outputObj;\r\n",
-                        "encoded": false
-                    },
-                    "in-binding": {
-                        "bind": [
-                            {
-                                "name": "responseContent",
-                                "type": "string",
-                                "export-name": "responseContent"
-                            },
-                            {
-                                "name": "successful",
-                                "type": "boolean",
-                                "export-name": "successful"
-                            },
-                            {
-                                "name": "outputMapping",
-                                "type": "string",
-                                "export-name": "outputMapping"
-                            },
-                            {
-                                "name": "namespace",
-                                "type": "string",
-                                "export-name": "namespace"
-                            },
-                            {
-                                "name": "typeName",
-                                "type": "string",
-                                "export-name": "typeName"
-                            },
-                            {
-                                "name": "typeProperties",
-                                "type": "Array/string",
-                                "export-name": "typeProperties"
-                            }
-                        ]
-                    },
-                    "out-binding": {
-                        "bind": [
-                            {
-                                "name": "result",
-                                "type": "DynamicTypes:" + namespace + "." + typeJson.typeName,
-                                "export-name": "result"
-                            }
-                        ]
-                    },
-                    "description": "Simple task with custom script capability.",
-                    "position": {
-                        "y": 60.0,
-                        "x": 360.0
-                    },
-                    "name": "item1",
-                    "out-name": "item0",
-                    "type": "task",
-                    "comparator": 0
-                },
-                {
-                    "display-name": "Launch AWX Job",
-                    "script": {
-                        "value": "//Auto generated script, cannot be modified !\nactionResult = System.getModule(\"com.vmware.pso.types.ansible\").launchAWXJob(endpointName,extra_vars,templateId,namespace,typeName);\n",
-                        "encoded": false
-                    },
-                    "in-binding": {
-                        "bind": [
-                            {
-                                "description": "",
-                                "name": "endpointName",
-                                "type": "string",
-                                "export-name": "EndpointName"
-                            },
-                            {
-                                "description": "",
-                                "name": "extra_vars",
-                                "type": "string",
-                                "export-name": "extra_vars"
-                            },
-                            {
-                                "description": "",
-                                "name": "templateId",
-                                "type": "string",
-                                "export-name": "templateId"
-                            },
-                            {
-                                "description": "",
-                                "name": "namespace",
-                                "type": "string",
-                                "export-name": "namespace"
-                            },
-                            {
-                                "description": "",
-                                "name": "typeName",
-                                "type": "string",
-                                "export-name": "typeName"
-                            }
-                        ]
-                    },
-                    "out-binding": {
-                        "bind": [
-                            {
-                                "name": "actionResult",
-                                "type": "string",
-                                "export-name": "responseContent"
-                            }
-                        ]
-                    },
-                    "description": "Add a note to the workflow schema.",
-                    "position": {
-                        "y": 60.0,
-                        "x": 260.0
-                    },
-                    "name": "item2",
-                    "out-name": "item1",
-                    "type": "task",
-                    "script-module": "com.vmware.pso.types.ansible/launchAWXJob",
-                    "comparator": 0
-                },
-                {
-                    "display-name": "Build extra_vars",
-                    "script": {
-                        "value": extra_vars_script,//Build based on inputs / oututs
-                        "encoded": false
-                    },
-                    "in-binding": {
-                        "bind": extra_vars_in_binding
-                    },
-                    "out-binding": {
-                        "bind": [
-                            {
-                                "name": "extra_vars",
-                                "type": "string",
-                                "export-name": "extra_vars"
-                            }
-                        ]
-                    },
-                    "description": "Simple task with custom script capability.",
-                    "position": {
-                        "y": 60.0,
-                        "x": 160.0
-                    },
-                    "name": "item3",
-                    "out-name": "item2",
-                    "type": "task",
-                    "comparator": 0
+            template.extra_vars.forEach(function (e) {
+                if (e.inputReference.toLowerCase() == "id") {
+                    e.inputReference = "id";
+                    idIncluded = true;
                 }
-            ];
+                //Make sure we don't duplicate inputs:
+                var inputExists = false;
+                for (var i = 0; i < inputs.param.length; i++) {
+                    if (inputs.param[i].name == e.inputReference) {
+                        inputExists = true;
+                        break;
+                    }
+                }
+                if (inputExists == false)
+                    inputs.param.push({ "name": e.inputReference, "type": "string" });
+            });
+            if (idIncluded == false)
+                inputs.param.push({ "name": "id", "type": "string" });
+
+            parseScript = getResourceContent("ReturnScript_day2.txt");
+
+            var attribs = JSON.parse(getResourceContent("wfattribs.json"));
+
+            attribs.forEach(function (a) {
+                switch (a.name) {
+                    case "outputMapping":
+                        a.value.string.value = JSON.stringify(template.outputMapping);
+                        break;
+                    case "extra_vars":
+                        a.value.string.value = JSON.stringify(template.extra_vars);
+                        break;
+                    case "templateId":
+                        a.value.string.value = template.templateId;
+                        break;
+                    case "namespace":
+                        a.value.string.value = namespace;
+                        break;
+                    case "typeName":
+                        a.value.string.value = typeJson.typeName;
+                        break;
+                    case "typeProperties":
+                        a.value.array.elements = typeNamesAttrib;
+                        break;
+                }
+            });
+
+
+            var wfItems = JSON.parse(getResourceContent("wfitems.json"));
+            wfItems.forEach(function (w) {
+                switch (w["display-name"]) {
+                    case "Parse & Assign":
+                        w.script.value = parseScript;
+                        w["out-binding"].bind[0].type = "string";
+                        break;
+                    case "Prepare context":
+                        w.script.value = extra_vars_script;
+                        w["in-binding"].bind = extra_vars_in_binding;
+                        //add endpointName to outputs of the context prep script:
+                        w["out-binding"].bind.push({ "name": "endpointName", "type": "string", "export-name": "endpointName" });
+                        w["out-binding"].bind.push({ "name": "uniqueId", "type": "string", "export-name": "uniqueId" });
+
+                        break;
+                }
+            });
             wfContent["root-name"] = "item3";
-            wfContent["id"] = newId;
-            wfContent["output"] = outputs;
-            wfContent["input"] = inputs;
-            wfContent["presentation"] = {};
-            wfContent["attrib"] = attribs;
+            wfContent.id = newId;
+            wfContent.output = outputs;
+            wfContent.input = inputs;
+            wfContent.presentation = {};
+            wfContent.attrib = attribs;
             wfContent["workflow-item"] = wfItems;
             wfContent["workflow-note"] = [];
 
@@ -411,13 +243,9 @@ else {
             Server.tagGlobally(newWf, "achris", null);
             Server.tagGlobally(newWf, namespace, typeJson.typeName);
 
+            typeWorkflows.put(newId, { "event": op.eventName, "typeName": typeJson.typeName, "pushTovRA": typeJson.pushTovRA, "wfName": wfRef.name });
         }
-
-        System.debug("Done");
-
-        typeWorkflows.put(newId, {"event": op.eventName, "typeName": typeJson.typeName, "pushTovRA": typeJson.pushTovRA, "wfName": wfRef.name});
-
-    }
+    });
 }
 
 return typeWorkflows;
@@ -429,7 +257,49 @@ function createGuid() {
     });
 }
 
+function getResourceContent(resourceName) {
+    var cat = Server.getResourceElementCategoryWithPath("com.vmware.pso.types.ansible");
+    for (var i = 0; i < cat.resourceElements.length; i++) {
+        if (cat.resourceElements[i].name == resourceName) {
+            return cat.resourceElements[i].getContentAsMimeAttachment().content;
+        }
+    }
+    return null;
+}
 
+function generateExtraVarsScript(AWXJobTemplate, inputBinding) {
 
-]]></script>
+    var extra_vars_script = "";
+    extra_vars_script = "//Get Endpoint and ID from input\nvar split = id.split(\"|#|\");\nif (split.length > 1){\n  endpointName = split[1];\n}\nuniqueId = split[0];\nSystem.debug(uniqueId);\nSystem.debug(endpointName);\r\n";
+    extra_vars_script += 'var evars = {"extra_vars":{}};\r\n';
+    var idIncluded = false;
+
+    AWXJobTemplate.extra_vars.forEach(function (e) {
+        if (e.inputReference.toLowerCase() == "id") {
+            extra_vars_script += 'evars.extra_vars.' + e.name + ' = uniqueId;\r\n';
+            idIncluded = true;
+        }
+        else
+            extra_vars_script += 'evars.extra_vars.' + e.name + ' = ' + e.inputReference + ';\r\n';
+
+        inputBinding.push({
+            "description": "",
+            "name": e.inputReference,
+            "type": "string",
+            "export-name": e.inputReference
+        });
+
+    });
+
+    if (idIncluded == false) {
+        inputBinding.push({
+            "description": "",
+            "name": "id",
+            "type": "string",
+            "export-name": "id"
+        });
+    }
+    extra_vars_script += "extra_vars = JSON.stringify(evars);\n";
+    return extra_vars_script;
+}]]></script>
 </dunes-script-module>

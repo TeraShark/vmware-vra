@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<description><![CDATA[A single workflow which automates the execution of a set of commands on multiple SSH hosts.]]></description>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='d62af302-aa79-4c51-96b8-a248c6b9ffde'&dunesName='Workflow']]></elm>
+</package>

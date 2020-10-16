@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="module" result-type="void" api-version="6.0.0" id="10b52c0f-f8ca-45aa-b987-9649520aafae" version="0.0.0" allowed-operations="evf" category-name="cava">
+  <param n="source" t="string"/>
+  <script encoded="false"><![CDATA[var module = { exports: {} }
+
+return Function("module", "exports", source).call({}, module, module.exports), module.exports;]]></script>
+</dunes-script-module>

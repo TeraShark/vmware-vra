@@ -1,21 +1,19 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item0" object-name="workflow:name=generic" id="835e19d9-841d-4614-9d82-07fb5bdf4796" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
-    <display-name>template-ansible-awx-type</display-name>
-    <description>Template</description>
-    <position y="50.0" x="100.0"/>
-    <input>
-        <param name="input_0" type="string">
-            <description>First input for the creation of your custom type</description>
-        </param>
-    </input>
-    <output/>
-    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
-        <in-binding/>
-        <out-binding/>
-        <position y="50.0" x="400.0"/>
-    </workflow-item>
-    <presentation/>
-    <workflow-note x="162.0" y="77.0" w="203.0" h="53.0" color="FFFFC0">
-        <description>Add your logic here to create your new type in the relevant system using REST / SOAP / SQL / SSH etc</description>
-    </workflow-note>
-</ns2:workflow>
+<?xml version='1.0' encoding='UTF-8'?>
+<workflow xmlns="http://vmware.com/vco/workflow" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://vmware.com/vco/workflow http://vmware.com/vco/workflow/Workflow-v4.xsd" root-name="item0" object-name="workflow:name=generic" id="835e19d9-841d-4614-9d82-07fb5bdf4796" version="0.0.1" api-version="6.0.0" allowed-operations="evf" editor-version="2.0" restartMode="1" resumeFromFailedMode="0">
+  <display-name><![CDATA[template-ansible-awx-type]]></display-name>
+  <description><![CDATA[Template]]></description>
+  <position y="50.0" x="100.0"/>
+  <input>
+    <param name="input_0" type="string">
+      <description><![CDATA[First input for the creation of your custom type]]></description>
+    </param>
+  </input>
+  <workflow-note x="162.0" y="77.0" w="203.0" h="53.0" color="FFFFC0">
+    <description><![CDATA[Add your logic here to create your new type in the relevant system using REST / SOAP / SQL / SSH etc]]></description>
+  </workflow-note>
+  <workflow-item name="item0" type="end" end-mode="0">
+    <in-binding/>
+    <position y="50.0" x="400.0"/>
+  </workflow-item>
+  <presentation/>
+</workflow>

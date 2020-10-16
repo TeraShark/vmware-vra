@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="Base64EncodeString" result-type="string" api-version="6.0.0" id="e07637d3-8a17-45cf-86f6-3b7dd32f41d9" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="Base64EncodeString" result-type="string" api-version="6.0.0" id="e07637d3-8a17-45cf-86f6-3b7dd32f41d9" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <description><![CDATA[Takes a string and returns the Base64 Encoded equivalent]]></description>
   <param n="input" t="string"><![CDATA[]]></param>
   <script encoded="false"><![CDATA[

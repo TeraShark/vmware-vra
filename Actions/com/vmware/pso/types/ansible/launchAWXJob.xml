@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="launchAWXJob" result-type="string" api-version="6.0.0" id="e4253830-ef75-4ecc-9c19-83f3bd740096" version="0.0.0" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="launchAWXJob" result-type="string" api-version="6.0.0" id="e4253830-ef75-4ecc-9c19-83f3bd740096" version="0.0.0" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="endpointName" t="string"><![CDATA[]]></param>
   <param n="extra_vars" t="string"><![CDATA[]]></param>
   <param n="templateId" t="string"><![CDATA[]]></param>

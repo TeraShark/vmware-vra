@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="callLinuxPowerCLI" result-type="Any" api-version="6.0.0" id="3ff8e1b4-72f0-46a8-8757-7419dd223654" version="0.0.1" category-name="com.vmware.pso">
+  <script encoded="false"><![CDATA[var cmd = null;
+var result = null;
+try {
+
+    cmd = new SSHCommand("10.149.88.129", "root", "VMware1!");
+    var cmdText = "pwsh -Command 'Connect-VIServer -Server cava8-vc-001350.sqa.local -Protocol https -User administrator@vsphere.local -Password VMware1! -Force'";
+
+    //Execute and wait:
+    System.debug("Executing 'Connect-VIServer' PowerCLI command on remote SSH Host...");
+
+    var cmdResult = cmd.executeCommand(cmdText, true);
+    System.debug("Command state:" + cmd.state);
+    if (cmd.state != "error") {
+        cmdResult = cmdResult.match(/([^-]*)$/)[0];
+        var parts = cmdResult.replace(/\s\s+/g, ' ').split(" ");
+        result = { "server": parts[0], "port": parts[1], "user": parts[2] };
+        System.log(JSON.stringify(result));
+    }
+    else
+        throw "Received Error from SSH command: " + cmd.error;
+
+} catch (e) { throw e; }
+finally {
+    try {
+        if (cmd != null) {
+            cmd.disconnect();
+            System.debug("Disconnected from SSH Host");
+        }
+    } catch (e) { }
+}
+
+return result;
+
+]]></script>
+</dunes-script-module>

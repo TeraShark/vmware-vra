@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="getvRAAuthToken" result-type="string" api-version="6.0.0" id="7f639b43-0ccd-40a4-9580-844cc1f280f2" version="0.0.1" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="getvRAAuthToken" result-type="string" api-version="6.0.0" id="7f639b43-0ccd-40a4-9580-844cc1f280f2" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="vRAServer" t="Any"><![CDATA[vRO Server Object from input JSON]]></param>
   <script encoded="false"><![CDATA[
 var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();

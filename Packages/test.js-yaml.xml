@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<package>
+<description><![CDATA[]]></description>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='601fc323-ddce-4604-8cc8-1341d7cffbe8'&dunesName='Workflow']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='7514f859-cb3b-48d3-9f0b-c723e0411742'&dunesName='Action'&name='bundle'&category='cava']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='4d1fd7d6-ec75-4ad8-aa05-be7b8f9412ea'&dunesName='Action'&name='script'&category='cava']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='10b52c0f-f8ca-45aa-b987-9649520aafae'&dunesName='Action'&name='module'&category='cava']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='2f10d882-b934-4d5e-92a9-5b7cdfd64b21'&dunesName='Action'&name='js_yaml'&category='bundles']]></elm>
+</package>

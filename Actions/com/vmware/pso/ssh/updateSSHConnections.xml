@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="updateSSHConnections" result-type="string" api-version="6.0.0" id="72ccb511-8d7a-40a0-b6b3-fb7cff7a6300" version="0.0.0" category-name="com.vmware.pso.ssh">
+  <script encoded="false"><![CDATA[// ss | grep -i ssh]]></script>
+</dunes-script-module>

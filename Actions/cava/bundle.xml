@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="bundle" result-type="void" api-version="6.0.0" id="7514f859-cb3b-48d3-9f0b-c723e0411742" version="0.0.0" allowed-operations="evf" category-name="cava">
+  <description><![CDATA[loads a bundle created by a tool such as browserify]]></description>
+  <script encoded="false"><![CDATA[return function bundle(action_reference) {
+
+	var source = bundle.toString() + '\n' + (System.getModule("cava").script(action_reference));
+
+	return System.getModule("cava").module(source)
+
+	function bundle(exports) {
+		if (typeof module && module.exports)
+			module.exports = exports
+	}
+}]]></script>
+</dunes-script-module>

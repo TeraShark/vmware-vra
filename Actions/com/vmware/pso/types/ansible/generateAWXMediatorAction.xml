@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="generateAWXMediatorAction" result-type="Any" api-version="6.0.0" id="09e2a78f-7883-41d9-80f6-50c46e394dc9" version="0.5.1" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="generateAWXMediatorAction" result-type="Any" api-version="6.0.0" id="09e2a78f-7883-41d9-80f6-50c46e394dc9" version="0.5.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="token" t="string"><![CDATA[]]></param>
   <param n="vROServer" t="Any"><![CDATA[]]></param>
   <param n="typeJSON" t="Any"><![CDATA[]]></param>

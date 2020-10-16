@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config-element id="34193868-db36-428f-8ddc-5026e07bc1a9" version="0.0.0">
+  <display-name><![CDATA[sshHostA]]></display-name>
+  <atts>
+    <att name="hostName" type="string" read-only="false">
+      <value encoded="n"><![CDATA[10.149.88.129]]></value>
+    </att>
+    <att name="username" type="string" read-only="false">
+      <value encoded="n"><![CDATA[root]]></value>
+    </att>
+    <att name="password" type="SecureString" read-only="false">
+      <value encoded="n"><![CDATA[__NULL__]]></value>
+    </att>
+    <att name="currentConnections" type="number" read-only="false">
+      <value encoded="n"><![CDATA[0.0]]></value>
+    </att>
+  </atts>
+</config-element>

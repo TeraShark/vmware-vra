@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="GetHostForSSH" result-type="string" api-version="6.0.0" id="376bee9c-831f-4785-a8bb-397687786b40" version="0.0.0" category-name="com.vmware.pso.ssh">
+  <script encoded="false"><![CDATA[// fetch least connection SSH Host:
+]]></script>
+</dunes-script-module>

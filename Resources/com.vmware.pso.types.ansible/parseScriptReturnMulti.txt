@@ -59,6 +59,7 @@ mappedResults.forEach(function (output) {
             if (Object.keys(output)[i].toLowerCase() == "name")
                 obj.name = output[Object.keys(output)[i]];
         }
+        obj.setProperty("endpointName", endpointName);
         outputObjs.push(obj);
     } else System.error("Instantiation of type [" + namespace + "." + childTypeName + "] returned null!");
 });
