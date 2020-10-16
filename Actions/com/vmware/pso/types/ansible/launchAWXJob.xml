@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="launchAWXJob" result-type="string" api-version="6.0.0" id="e4253830-ef75-4ecc-9c19-83f3bd740096" version="0.0.0" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="launchAWXJob" result-type="string" api-version="6.0.0" id="e4253830-ef75-4ecc-9c19-83f3bd740096" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="endpointName" t="string"><![CDATA[]]></param>
   <param n="extra_vars" t="string"><![CDATA[]]></param>
   <param n="templateId" t="string"><![CDATA[]]></param>
@@ -14,7 +14,7 @@ if (!cat) {
     throw "No Configurations found for " + namespace;
 }
 
-var endpointUrl = "";//"http://10.149.88.129/";
+var endpointUrl = "";
 var userName = "";
 var pwd = "";
 var authType = "";
@@ -49,142 +49,100 @@ var requestContent = {};
 try {
     requestContent = JSON.parse(extra_vars);
 } catch (e) {
-    throw "Invalid JSON payload";
+    throw "Invalid extra_vars format - not JSON compliant.";
 }
 
-System.debug("Initializing REST Host...");
+System.debug("Initializing REST Host (" + endpointUrl + ")");
 
 var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, userName, pwd);
 var restClient = new RestClient(restHost);
 
-var _headers = {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-};
+var _headers = { "Content-Type": "application/json", "Accept": "application/json" };
 
 if (authType == "basic" && (!userName || userName.length == 0))
     _headers.Authorization = "Basic " + System.getModule("com.vmware.pso.types.ansible").Base64EncodeString(userName + ":" + pwd);
 else if (authType == "oauth")
     _headers.Authorization = "Bearer " + authKey;
 
-//System.debug(JSON.stringify(_headers));
+var response = JSON.parse(callAWXApi("POST", "/api/v2/job_templates/{templateId}/launch/", 
+                    [templateId], _headers, requestContent, restClient).contentAsString);
 
-System.debug("Building request object...");
-
-var request = {
-    path: '/api/v2/job_templates/{templateId}/launch/',
-    params: [templateId],
-    content: requestContent,
-    options: {
-        skipEncodeParams: true,
-        returnResponseObject: true,
-        returnResponseObjectForReal: false,
-        stringifyJsonContent: true,
-        interpretResponseCode: false,
-        headers: _headers,
-        errorHandler: {					//Defines a retry mechanism in case of failed requests
-            numberOfRetries: 3,			//Number of retries
-            retryWaitInterval: 15,			//Polling interval in seconds
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
-        }
-    }
-};
-//System.debug(JSON.stringify(request.content));
-System.debug("Calling AWX API...");
-
-var httpData = restClient.post(request.path, request.params, request.content, request.options);
-if (httpData.statusCode != 201) {
-    throw "Error calling AWX API. Received Status Code: " + httpData.statusCode;
-}
-var response = JSON.parse(httpData.contentAsString);
 System.debug("Launched Job Template ID [" + templateId + "] with Job ID: " + response.id)
 var jobId = response.id;
-
-
-System.debug("Building request object...");
-
-var request = {
-    path: '/api/v2/jobs/{jobId}/',
-    params: [jobId],
-    options: {
-        skipEncodeParams: true,
-        returnResponseObject: true,
-        returnResponseObjectForReal: false,
-        stringifyJsonContent: true,
-        interpretResponseCode: false,
-        headers: _headers,
-        errorHandler: {					//Defines a retry mechanism in case of failed requests
-            numberOfRetries: 3,			//Number of retries
-            retryWaitInterval: 15,			//Polling interval in seconds
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
-        }
-    }
-};
 
 var status = "";
 var failed = false;
 var count = 0;
 System.debug("Waiting 5s before fetching Job Status...");
-System.sleep(3000);
+System.sleep(5000);
 
 while (status != "successful" && failed == false && count < 100) {
     System.debug("Calling AWX API...");
-    var httpData = restClient.get(request.path, request.params, request.options);
+    var httpData = callAWXApi("GET", "/api/v2/jobs/{jobId}/", [jobId], _headers, null, restClient );
     if (httpData.statusCode != 200) {
         throw "Error calling API. Received Status Code: " + httpData.statusCode;
     }
 
     var json = JSON.parse(httpData.contentAsString);
-
     status = json.status;
     failed = json.failed;
 
     if (status != "successful" && failed == false) {
-        System.debug("Job still running. Waiting another 5s before checking again...");
-        System.sleep(5000);
+        System.debug("Job still running. Waiting another 3s before checking again...");
+        System.sleep(3000);
         count++;
     } else if (failed == true) {
         throw "AWX Job failed: " + JSON.stringify(json);
     }
 }
+
 System.debug("Job completed - Status: " + status + " | failed: " + failed);
 
-
-_headers.Accept = 'text/plain; charset=utf-8';
+_headers.Accept = "text/plain; charset=utf-8";
 
 System.debug("Building request object...");
-
-var request = {
-    path: '/api/v2/jobs/{jobId}/stdout/?format=txt',
-    params: [jobId],
-    //content: JSON.stringify(requestContent),
-    options: {
-        skipEncodeParams: true,	
-        returnResponseObject: true,		
-        returnResponseObjectForReal: false, 	
-        stringifyJsonContent: false,	
-        interpretResponseCode: false,	
-        headers: _headers,
-        errorHandler: {					//Defines a retry mechanism in case of failed requests
-            numberOfRetries: 3,			//Number of retries
-            retryWaitInterval: 15,			//Polling interval in seconds
-            errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
-        }
-    }
-};
 System.debug("Calling API for output of JobID [" + jobId + "]...");
 
-var httpData = restClient.get(request.path, request.params, request.options);
-if (httpData.statusCode != 200){
+var httpData = callAWXApi("GET", "/api/v2/jobs/{jobId}/stdout/?format=txt", [jobId], _headers, null, restClient);
+if (httpData.statusCode != 200) {
     throw "Error calling API. Received Status Code: " + httpData.statusCode;
 }
 
 return httpData.contentAsString;
 
+function callAWXApi(method, subUrl, urlParams, _headers, requestContent, restClient) {
 
+    System.debug("Building " + method + " request object...");
 
+    var request = {
+        path: subUrl,
+        params: urlParams,
+        content: requestContent,
+        options: {
+            skipEncodeParams: true,
+            returnResponseObject: true,
+            returnResponseObjectForReal: false,
+            stringifyJsonContent: true,
+            interpretResponseCode: false,
+            headers: _headers,
+            errorHandler: {					//Defines a retry mechanism in case of failed requests
+                numberOfRetries: 3,			//Number of retries
+                retryWaitInterval: 15,			//Polling interval in seconds
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+            }
+        }
+    };
+    //System.debug(JSON.stringify(request.content));
+    System.debug("Calling AWX API...");
 
-
+    var httpData = (method.toLowerCase() == "get" ?
+        restClient.get(request.path, request.params, request.options) :
+        restClient.post(request.path, request.params, request.content, request.options));
+    if (httpData.statusCode > 201) {
+        throw "Error calling AWX API. Received Status Code: " + httpData.statusCode;
+    }
+    return httpData;
+}
 
 function parseConfig(str) {
     if (!str)
