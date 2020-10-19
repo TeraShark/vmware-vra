@@ -53,13 +53,13 @@ mappedResults.forEach(function (output) {
     if (obj != null) {
         System.debug("Instantiated new " + childTypeName);
         for (var i = 0; i < Object.keys(output).length; i++) {
-            obj.setProperty(Object.keys(output)[i], output[Object.keys(output)[i]]);
             if (Object.keys(output)[i].toLowerCase() == "id")
                 obj.id = output[Object.keys(output)[i]] + "|#|" + endpointName;
-            if (Object.keys(output)[i].toLowerCase() == "name")
+            else if (Object.keys(output)[i].toLowerCase() == "name")
                 obj.name = output[Object.keys(output)[i]];
+            else
+                obj.setProperty(Object.keys(output)[i], output[Object.keys(output)[i]]);
         }
-        obj.setProperty("endpointName", endpointName);
         outputObjs.push(obj);
     } else System.error("Instantiation of type [" + namespace + "." + childTypeName + "] returned null!");
 });

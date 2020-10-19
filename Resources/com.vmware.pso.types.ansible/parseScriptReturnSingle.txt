@@ -15,23 +15,25 @@ mapping.forEach(function(map){
 
     result = responseContent.match(regexp);
     if (result && result.length > 1){
-        System.debug("Found value: " + result[1]);
-        System.debug(map.typeReference + ":" + result[1]);
+        var val = result[1];
+        if(val == null || val.length == 0){
+            val = result[0];
+        }
+        System.debug("Found value: " + val);
+        System.debug(map.typeReference + ":" + val);
         if(map.typeReference.toLowerCase() == "id")
-            id = result[1];
-        outputObj.setProperty(map.typeReference, result[1]);
+            outputObj.id = val + "|#|" + endpointName;
+        else if(map.typeReference.toLowerCase() == "name")
+            outputObj.name = val;
+        else
+            outputObj.setProperty(map.typeReference, val);
     }
-    else{
-        System.error("Expression returned no results");
-    }
+    else
+        System.error("REgex expression '" + regexp.source + "' returned no results");
 });
 
-if(id != null)
-    outputObj.id = id + "|#|" + endpointName;
-
-outputObj.setProperty("endpointName", endpointName);
-    
-System.debug("object id: " + outputObj.id);
+if(outputObj.id)    
+    System.debug("object id: " + outputObj.id);
 
 result = outputObj;
 
