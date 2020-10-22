@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<dunes-script-module name="generateAWXMediatorWorkflow" result-type="Any" api-version="6.0.0" id="d4d22b41-7099-47e8-97ad-9989bea8f7ee" version="0.0.1" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
+<dunes-script-module name="generateAWXMediatorWorkflow" result-type="Any" api-version="6.0.0" id="d4d22b41-7099-47e8-97ad-9989bea8f7ee" version="0.0.2" allowed-operations="evf" category-name="com.vmware.pso.types.ansible">
   <param n="token" t="string"><![CDATA[]]></param>
   <param n="AWXJobTemplate" t="Any"><![CDATA[]]></param>
   <param n="vROServer" t="Any"><![CDATA[]]></param>
@@ -100,7 +100,7 @@ switch (eventName) {
         AWXJobTemplate.extra_vars.forEach(function (e) {
             System.debug(e.inputReference);
             inputs.param.push({ "name": e.inputReference, "type": "string" });
-            if(e.inputReference.toLowerCase() == "endpointName")
+            if(e.inputReference.toLowerCase() == "endpointname")
                 endpointNamePresent = true;
         });
         if(endpointNamePresent == false){
@@ -285,7 +285,7 @@ newId = wfRef.id;
 System.debug("Tagging WF");
 var newWf = Server.getWorkflowWithId(newId);
 
-Server.tagGlobally(newWf, "achris", null);
+//Server.tagGlobally(newWf, "achris", null);
 Server.tagGlobally(newWf, namespace, typeJSON.typeName);
 System.debug("Done");
 
