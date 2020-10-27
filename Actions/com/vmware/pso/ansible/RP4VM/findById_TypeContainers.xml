@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="findById_TypeContainers" result-type="DynamicTypes:com.vmware.pso.ansible.RP4VM.Endpoint" api-version="6.0.0" id="138ada15-5498-4573-a966-03b2a5058e3a" version="0.0.1" category-name="com.vmware.pso.ansible.RP4VM">
+  <param n="type" t="string"><![CDATA[object type]]></param>
+  <param n="id" t="string"><![CDATA[object id]]></param>
+</dunes-script-module>

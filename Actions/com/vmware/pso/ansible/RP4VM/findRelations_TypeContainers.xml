@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="findRelations_TypeContainers" result-type="Array/DynamicTypes:DynamicObject" api-version="6.0.0" id="440373ab-3c4a-4a37-b522-6711a7793a76" version="0.0.1" category-name="com.vmware.pso.ansible.RP4VM">
+  <param n="parentType" t="string"><![CDATA[parent type]]></param>
+  <param n="parentId" t="string"><![CDATA[parent id]]></param>
+  <param n="relationName" t="string"><![CDATA[name of relation]]></param>
+  <script encoded="false"><![CDATA[var resultObjs = [];
+switch (relationName) {
+    case "namespace-children":
+        resultObjs.push(DynamicTypesManager.makeObject("com.vmware.pso.ansible.RP4VM", "Endpoints", "Endpoints", "Endpoints"));
+        break;
+case "Endpoints-Endpoint":
+        if (parentType == "com.vmware.pso.ansible.RP4VM.Endpoints") {
+            var configs = Server.getConfigurationElementCategoryWithPath("com.vmware.pso.ansible.RP4VM.Endpoints");
+            if (configs) {
+                var elems = configs.configurationElements;
+                elems.forEach(function (elem) {
+                    resultObjs.push(DynamicTypesManager.makeObject("com.vmware.pso.ansible.RP4VM", "Endpoint", elem.name + "|#|" + elem.name, elem.name));
+                });
+            }
+        }
+        break;
+    case "Endpoint-ConsistencyGroups":
+        var endpointId = parentId.split("|#|")[1];
+        resultObjs.push(DynamicTypesManager.makeObject("com.vmware.pso.ansible.RP4VM", "ConsistencyGroups", "ConsistencyGroups|#|" + endpointId, "ConsistencyGroups"));
+        break;
+}
+
+return resultObjs;]]></script>
+</dunes-script-module>

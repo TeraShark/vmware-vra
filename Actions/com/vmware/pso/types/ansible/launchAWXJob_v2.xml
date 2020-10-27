@@ -1,0 +1,166 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="launchAWXJob_v2" result-type="Any" api-version="6.0.0" id="987e51b9-2809-4ea4-b75f-f2bbe52d0a96" version="0.0.2" category-name="com.vmware.pso.types.ansible">
+  <param n="endpointName" t="string"><![CDATA[]]></param>
+  <param n="extra_vars" t="string"><![CDATA[]]></param>
+  <param n="templateId" t="string"><![CDATA[]]></param>
+  <param n="namespace" t="string"><![CDATA[]]></param>
+  <param n="typeName" t="string"><![CDATA[]]></param>
+  <param n="taskFilter" t="string"><![CDATA[Name of the relevant Task to filter on]]></param>
+  <param n="returnObjectName" t="string"><![CDATA[Name of the object from the task variables to return in JSON format]]></param>
+  <script encoded="false"><![CDATA[var RestHostFactory = System.getModule("com.vmware.pscoe.library.rest").RestHostFactory();
+var RestClient = System.getModule("com.vmware.pscoe.library.rest").RestClient();
+
+System.debug("Fetching configs for [" + namespace + "]...");
+var cat = Server.getConfigurationElementCategoryWithPath(namespace + ".Endpoints");
+if (!cat) {
+    throw "No Configurations found for " + namespace;
+}
+
+var endpointUrl = "";
+var userName = "";
+var pwd = "";
+var authType = "";
+var authKey = "";
+
+var found = false;
+
+System.debug("Fetching Settings from configs...")
+try {
+    for each(var elem in cat.configurationElements) {
+        if (elem.name == endpointName) {
+            endpointUrl = parseConfig(elem.getAttributeWithKey("host"));
+            userName = parseConfig(elem.getAttributeWithKey("username"));
+            pwd = parseConfig(elem.getAttributeWithKey("password"));
+            authType = parseConfig(elem.getAttributeWithKey("authType"));
+            authKey = parseConfig(elem.getAttributeWithKey("authKey"));
+            found = true;
+            break;
+        }
+    }
+} catch (e) {
+    throw "Missing Configuration values for EndPoint: " + endpointName;
+}
+
+if (!found) {
+    throw "Configuration element for EndPoint [" + endpointName + "] not found.";
+}
+
+System.debug("Obtained required configurations...");
+
+var requestContent = {};
+try {
+    requestContent = JSON.parse(extra_vars);
+} catch (e) {
+    throw "Invalid extra_vars format - not JSON compliant.";
+}
+
+System.debug("Initializing REST Host (" + endpointUrl + ")");
+
+var restHost = RestHostFactory.newHostWithBasicAuth(endpointUrl, endpointName, userName, pwd);
+var restClient = new RestClient(restHost);
+
+var _headers = { "Content-Type": "application/json", "Accept": "application/json" };
+
+if (authType == "basic" && (!userName || userName.length == 0))
+    _headers.Authorization = "Basic " + System.getModule("com.vmware.pso.types.ansible").Base64EncodeString(userName + ":" + pwd);
+else if (authType == "oauth")
+    _headers.Authorization = "Bearer " + authKey;
+
+var response = JSON.parse(callAWXApi("POST", "/api/v2/job_templates/{templateId}/launch/", 
+                    [templateId], _headers, requestContent, restClient).contentAsString);
+
+System.debug("Launched Job Template ID [" + templateId + "] with Job ID: " + response.id)
+var jobId = response.id;
+
+var status = "";
+var failed = false;
+var count = 0;
+System.debug("Waiting 5s before fetching Job Status...");
+System.sleep(5000);
+
+while (status != "successful" && failed == false && count < 100) {
+    System.debug("Calling AWX API...");
+    var httpData = callAWXApi("GET", "/api/v2/jobs/{jobId}/", [jobId], _headers, null, restClient );
+    if (httpData.statusCode != 200) {
+        throw "Error calling API. Received Status Code: " + httpData.statusCode;
+    }
+
+    var json = JSON.parse(httpData.contentAsString);
+    status = json.status;
+    failed = json.failed;
+
+    if (status != "successful" && failed == false) {
+        System.debug("Job still running. Waiting another 3s before checking again...");
+        System.sleep(3000);
+        count++;
+    } else if (failed == true) {
+        throw "AWX Job failed: " + JSON.stringify(json);
+    }
+}
+
+System.debug("Job completed - Status: " + status + " | failed: " + failed);
+
+System.debug("Calling API for output of JobID [" + jobId + "], Task Name [" + taskFilter + "]...");
+
+var httpData = callAWXApi("GET", "/api/v2/jobs/{jobId}/job_events/?event__contains=runner_on_ok&task__contains={taskContains}", [jobId, taskFilter], _headers, null, restClient);
+//var httpData = callAWXApi("GET", "/api/v2/jobs/{jobId}/job_events/", [jobId], _headers, null, restClient);
+if (httpData.statusCode != 200) {
+    throw "Error calling API. Received Status Code: " + httpData.statusCode;
+}
+
+System.debug(httpData.contentAsString);
+var taskResult = JSON.parse(httpData.contentAsString);
+var returnObj = taskResult;
+if (taskResult && taskResult.results){
+    if(taskResult.results.length == 1){
+        returnObj = eval("returnObj.results[0].event_data.res." + returnObjectName);
+    } else{
+        returnObj = taskResult.results;
+    }
+}
+return returnObj;
+
+function callAWXApi(method, subUrl, urlParams, _headers, requestContent, restClient) {
+
+    System.debug("Building " + method + " request object...");
+
+    var request = {
+        path: subUrl,
+        params: urlParams,
+        content: requestContent,
+        options: {
+            skipEncodeParams: false,
+            returnResponseObject: true,
+            returnResponseObjectForReal: false,
+            stringifyJsonContent: true,
+            interpretResponseCode: false,
+            headers: _headers,
+            errorHandler: {					//Defines a retry mechanism in case of failed requests
+                numberOfRetries: 3,			//Number of retries
+                retryWaitInterval: 15,			//Polling interval in seconds
+                errorsToRetry: ["Read timed out"]	//Specific errors to retry (Default: ["Connection pool shut down"])
+            }
+        }
+    };
+    //System.debug(JSON.stringify(request.content));
+
+    System.debug("Calling AWX API...");
+
+    var httpData = (method.toLowerCase() == "get" ?
+        restClient.get(request.path, request.params, request.options) :
+        restClient.post(request.path, request.params, request.content, request.options));
+    if (httpData.statusCode > 201) {
+        System.error(JSON.stringify(httpData));
+        throw "Error calling AWX API. Received Status Code: " + httpData.statusCode;
+    }
+    return httpData;
+}
+
+function parseConfig(str) {
+    if (!str)
+        throw "Missing Config Value";
+    if (str.value)
+        return str.value.toString();
+    return "";
+}]]></script>
+</dunes-script-module>

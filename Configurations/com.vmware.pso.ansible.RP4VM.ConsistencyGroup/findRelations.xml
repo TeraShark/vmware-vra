@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<config-element id="dab1e796-482d-48d4-b287-ef0349ebc393" version="0.0.1">
+  <display-name><![CDATA[findRelations]]></display-name>
+  <atts>
+    <att name="typeProperties" type="string" read-only="false">
+      <value encoded="n"><![CDATA[["endpointName","protectedVMs","metadata"]]]></value>
+    </att>
+    <att name="outputMapping" type="string" read-only="false">
+      <value encoded="n"><![CDATA[[     {         "typeReference": "id",         "parseType": "JSON",         "taskName": "Fetch all consistency groups",         "outputVarName": "ansible_facts",         "arrayJSONPath": "existing_groups",         "propertyJSONPath": "groupId"     },     {         "typeReference": "name",         "parseType": "JSON",         "outputVarName": "ansible_facts",         "taskName": "Fetch all consistency groups",         "arrayJSONPath": "existing_groups",         "propertyJSONPath": "name"     } ]]]></value>
+    </att>
+    <att name="extra_vars" type="string" read-only="false">
+      <value encoded="n"><![CDATA[[]]]></value>
+    </att>
+    <att name="templateId" type="string" read-only="false">
+      <value encoded="n"><![CDATA[11]]></value>
+    </att>
+    <att name="childTypes" type="string" read-only="false">
+      <value encoded="n"><![CDATA[[]]]></value>
+    </att>
+    <att name="containerChildTypes" type="string" read-only="false">
+      <value encoded="n"><![CDATA[[]]]></value>
+    </att>
+  </atts>
+</config-element>

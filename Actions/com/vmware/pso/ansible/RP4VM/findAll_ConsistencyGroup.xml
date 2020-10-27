@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="findAll_ConsistencyGroup" result-type="Array/DynamicTypes:DynamicObject" api-version="6.0.0" id="26b17d31-72a2-4811-acc2-2d302906e11d" version="0.0.1" category-name="com.vmware.pso.ansible.RP4VM">
+  <param n="type" t="string"><![CDATA[object type]]></param>
+</dunes-script-module>

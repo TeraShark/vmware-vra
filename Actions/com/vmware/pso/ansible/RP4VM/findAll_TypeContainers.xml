@@ -1,0 +1,4 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="findAll_TypeContainers" result-type="Array/DynamicTypes:DynamicObject" api-version="6.0.0" id="9fb2a620-2f5d-46d3-b2f9-243fc50ed7b4" version="0.0.1" category-name="com.vmware.pso.ansible.RP4VM">
+  <param n="type" t="string"><![CDATA[object type]]></param>
+</dunes-script-module>

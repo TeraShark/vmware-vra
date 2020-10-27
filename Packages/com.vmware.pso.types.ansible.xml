@@ -24,6 +24,7 @@
 <elm src-category='null'><![CDATA[dunes://service.dunes.ch/Workflow?id='3f4fe39c-5652-4498-bb83-269b112d1d49'&dunesName='Workflow']]></elm>
 <elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='e4253830-ef75-4ecc-9c19-83f3bd740096'&dunesName='Action'&name='launchAWXJob'&category='com.vmware.pso.types.ansible']]></elm>
 <elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='e07637d3-8a17-45cf-86f6-3b7dd32f41d9'&dunesName='Action'&name='Base64EncodeString'&category='com.vmware.pso.types.ansible']]></elm>
+<elm src-category='null'><![CDATA[dunes://service.dunes.ch/Action?id='987e51b9-2809-4ea4-b75f-f2bbe52d0a96'&dunesName='Action'&name='launchAWXJob_v2'&category='com.vmware.pso.types.ansible']]></elm>
 <elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='a4680baf-7ae6-4bb1-80e0-77416e04a5d6'&dunesName='ResourceElement']]></elm>
 <elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='787d2ca3-c4b3-4639-ada0-767d7171f944'&dunesName='ResourceElement']]></elm>
 <elm src-category='null'><![CDATA[dunes://service.dunes.ch/ResourceElement?id='6766f502-9e13-47c6-859b-7fcc8b7d61f3'&dunesName='ResourceElement']]></elm>

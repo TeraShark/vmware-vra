@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item3" object-name="workflow:name=generic" id="6b5988d4-2608-49d1-b518-454f71c93443" editor-version="2.0" version="0.0.1" api-version="6.0.0" allowed-operations="vef" restartMode="1" resumeFromFailedMode="0">
+    <display-name>Delete com.vmware.pso.ansible.RP4VM.ConsistencyGroup</display-name>
+    <description>Template</description>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="ConsistencyGroup" type="DynamicTypes:com.vmware.pso.ansible.RP4VM.ConsistencyGroup"/>
+    </input>
+    <output>
+        <param name="result" type="string"/>
+    </output>
+    <attrib name="endpointName" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="uniqueId" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="responseContent" type="string">
+        <value encoded="n"></value>
+    </attrib>
+    <attrib name="outputMapping" type="string">
+        <value encoded="n">[]</value>
+    </attrib>
+    <attrib name="extra_vars" type="string">
+        <value encoded="n">[{"name":"ID","inputReference":"id"},{"name":"cg_name","inputReference":"name"}]</value>
+    </attrib>
+    <attrib name="templateId" type="string">
+        <value encoded="n">9</value>
+    </attrib>
+    <attrib name="namespace" type="string">
+        <value encoded="n">com.vmware.pso.ansible.RP4VM</value>
+    </attrib>
+    <attrib name="typeName" type="string">
+        <value encoded="n">ConsistencyGroup</value>
+    </attrib>
+    <attrib name="typeProperties" type="Array/string">
+        <value encoded="n">[19:string#endpointName,19:string#protectedVMs,15:string#metadata]</value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="460.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>Parse &amp; Assign</display-name>
+        <script encoded="false">var outputObj = {};&#13;
+&#13;
+&#13;
+var regexp = null;&#13;
+var result = "";&#13;
+System.debug("Iterating Mapping and Parsing Ansible output...");&#13;
+var mapping = JSON.parse(outputMapping);&#13;
+var id = null;&#13;
+mapping.forEach(function(map){&#13;
+    System.debug("Mapping property: " + map.typeReference);&#13;
+ &#13;
+    regexp = new RegExp(map.regExp, map.regExpFlag);&#13;
+    System.debug("RegExp: " + regexp.source + " | Flags: " + map.regExpFlag);&#13;
+&#13;
+    result = responseContent.match(regexp);&#13;
+    if (result &amp;&amp; result.length &gt; 1){&#13;
+        System.debug("Found value: " + result[1]);&#13;
+        System.debug(map.typeReference + ":" + result[1]);&#13;
+        if(map.typeReference.toLowerCase() == "id")&#13;
+            id = result[1];&#13;
+        outputObj[map.typeReference] = result[1];&#13;
+    }&#13;
+    else{&#13;
+        System.error("Expression returned no results");&#13;
+    }&#13;
+});&#13;
+&#13;
+if(id != null)&#13;
+    outputObj.id = id + "|#|" + endpointName;&#13;
+    &#13;
+System.debug("object id: " + outputObj.id);&#13;
+&#13;
+result = JSON.stringify(outputObj);&#13;
+</script>
+        <in-binding>
+            <bind name="endpointName" type="string" export-name="endpointName">
+                <description></description>
+            </bind>
+            <bind name="responseContent" type="string" export-name="responseContent"/>
+            <bind name="outputMapping" type="string" export-name="outputMapping"/>
+            <bind name="namespace" type="string" export-name="namespace"/>
+            <bind name="typeName" type="string" export-name="typeName"/>
+            <bind name="typeProperties" type="Array/string" export-name="typeProperties"/>
+        </in-binding>
+        <out-binding>
+            <bind name="result" type="string" export-name="result"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="360.0"/>
+    </workflow-item>
+    <workflow-item name="item2" out-name="item1" type="task" script-module="com.vmware.pso.types.ansible/launchAWXJob" comparator="0">
+        <display-name>Launch AWX Job</display-name>
+        <script encoded="false">//Auto generated script, cannot be modified !
+actionResult = System.getModule("com.vmware.pso.types.ansible").launchAWXJob(endpointName,extra_vars,templateId,namespace,typeName);
+</script>
+        <in-binding>
+            <bind name="endpointName" type="string" export-name="endpointName">
+                <description></description>
+            </bind>
+            <bind name="extra_vars" type="string" export-name="extra_vars">
+                <description></description>
+            </bind>
+            <bind name="templateId" type="string" export-name="templateId">
+                <description></description>
+            </bind>
+            <bind name="namespace" type="string" export-name="namespace">
+                <description></description>
+            </bind>
+            <bind name="typeName" type="string" export-name="typeName">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="actionResult" type="string" export-name="responseContent"/>
+        </out-binding>
+        <description>Add a note to the workflow schema.</description>
+        <position y="60.0" x="260.0"/>
+    </workflow-item>
+    <workflow-item name="item3" out-name="item2" type="task" comparator="0">
+        <display-name>Prepare context</display-name>
+        <script encoded="false">//Get Endpoint and ID from input
+var split = id.split("|#|");
+if (split.length &gt; 1){
+  endpointName = split[1];
+}
+uniqueId = split[0];
+System.debug(uniqueId);
+System.debug(endpointName);&#13;
+var evars = {"extra_vars":{}};&#13;
+evars.extra_vars.ID = uniqueId;&#13;
+evars.extra_vars.cg_name = name;&#13;
+extra_vars = JSON.stringify(evars);
+</script>
+        <in-binding>
+            <bind name="id" type="string" export-name="id">
+                <description></description>
+            </bind>
+            <bind name="name" type="string" export-name="name">
+                <description></description>
+            </bind>
+        </in-binding>
+        <out-binding>
+            <bind name="extra_vars" type="string" export-name="extra_vars"/>
+            <bind name="endpointName" type="string" export-name="endpointName"/>
+            <bind name="uniqueId" type="string" export-name="uniqueId"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="160.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>

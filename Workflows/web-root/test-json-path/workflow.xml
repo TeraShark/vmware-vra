@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:workflow xmlns:ns2="http://vmware.com/vco/workflow" root-name="item1" object-name="workflow:name=generic" id="e83ef75a-cfe9-4c15-861f-4b37254e0f6e" editor-version="2.0" version="0.0.0" api-version="6.0.0" restartMode="1" resumeFromFailedMode="0">
+    <display-name>test-json-path</display-name>
+    <position y="50.0" x="100.0"/>
+    <input>
+        <param name="parentType" type="string"/>
+        <param name="parentId" type="string"/>
+        <param name="relationName" type="string"/>
+    </input>
+    <output/>
+    <attrib name="resut" type="Array/Any">
+        <value encoded="n">[]</value>
+    </attrib>
+    <workflow-item name="item0" type="end" end-mode="0" comparator="0">
+        <in-binding/>
+        <out-binding/>
+        <position y="50.0" x="300.0"/>
+    </workflow-item>
+    <workflow-item name="item1" out-name="item0" type="task" comparator="0">
+        <display-name>Scriptable task</display-name>
+        <script encoded="false">&#13;
+//========================== vars =====================&#13;
+var namespace = "";//get from type passed in&#13;
+var id = parentId;&#13;
+var parts = parentType.split(".");&#13;
+var typeName = parts.pop();&#13;
+namespace = parts.join(".");&#13;
+&#13;
+//what about findById and findAll? &#13;
+//We only get a type to work with, so how will we define the endPoint on these?&#13;
+//maybe force an endPoint input for these actions?&#13;
+//######### fetch configs #################&#13;
+System.debug("Fetching configs for [" + namespace + "." + typeName + "]...");&#13;
+var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + typeName);&#13;
+if (!cat) {&#13;
+    throw "No Configurations found for " + namespace + "." + typeName;&#13;
+}&#13;
+&#13;
+var responseJSON = {};&#13;
+var endpointName = "";//Glean from Id below&#13;
+var successful = false;&#13;
+var uniqueId = "";&#13;
+var jobId = "";&#13;
+&#13;
+var typeProperties = [];//from config&#13;
+var outputMapping = '[]';//from config&#13;
+var extra_vars = '[]';//from config&#13;
+var templateId = "";//from config&#13;
+var childTypes = [];&#13;
+var containerChildTypes = [];&#13;
+var result = [];&#13;
+&#13;
+&#13;
+var found = false;&#13;
+&#13;
+System.debug("Fetching Settings from configs...")&#13;
+try {&#13;
+    cat.configurationElements.forEach(function (elem) {&#13;
+        System.debug(elem.name);&#13;
+        if (!found) {&#13;
+            if (elem.name == "findRelations") {&#13;
+                childTypes = JSON.parse(elem.getAttributeWithKey("childTypes").value);&#13;
+                containerChildTypes = JSON.parse(elem.getAttributeWithKey("containerChildTypes").value);&#13;
+                found = true;&#13;
+            }&#13;
+        }&#13;
+    });&#13;
+} catch (e) {&#13;
+    throw "Missing Configuration values for events for Type: " + typeName;&#13;
+}&#13;
+if (!found) {&#13;
+    throw "Missing Configuration values for events for Type: " + typeName;&#13;
+&#13;
+}&#13;
+&#13;
+childTypes.forEach(function (childTypeName) {&#13;
+    if (containerChildTypes.indexOf(childTypeName) &gt;= 0) {&#13;
+        //This should return a default ObjArray[] such as:&#13;
+        switch (relationName) {&#13;
+            case "namespace-children":&#13;
+                result.push(DynamicTypesManager.makeObject(namespace, childTypeName, childTypeName, childTypeName));&#13;
+                break;&#13;
+            case typeName + "-" + childTypeName:&#13;
+                var endpointId = parentId.split("|#|")[1];&#13;
+                result.push(DynamicTypesManager.makeObject(namespace, childTypeName, childTypeName + "|#|" + endpointId, childTypeName));&#13;
+                break;&#13;
+        }&#13;
+    } else {&#13;
+        if (relationName == typeName + "-" + childTypeName) {&#13;
+&#13;
+            System.debug("Fetching child configs for [" + namespace + "." + childTypeName + "]...");&#13;
+            var cat = Server.getConfigurationElementCategoryWithPath(namespace + "." + childTypeName);&#13;
+            if (!cat) {&#13;
+                throw "No child Configurations found for " + namespace + "." + childTypeName;&#13;
+            }&#13;
+            found = false;&#13;
+            try {&#13;
+                cat.configurationElements.forEach(function (elem) {&#13;
+                    //System.debug(elem.name);&#13;
+                    if (!found) {&#13;
+                        if (elem.name == "findRelations") {&#13;
+                            typeProperties = JSON.parse(elem.getAttributeWithKey("typeProperties").value);&#13;
+                            outputMapping = elem.getAttributeWithKey("outputMapping").value;&#13;
+                            extra_vars = elem.getAttributeWithKey("extra_vars").value;&#13;
+                            templateId = elem.getAttributeWithKey("templateId").value;&#13;
+                            found = true;&#13;
+                        }&#13;
+                    }&#13;
+                });&#13;
+            } catch (e) {&#13;
+                throw "Missing Configuration values for events for Type: " + childTypeName;&#13;
+            }&#13;
+            if (!found) {&#13;
+                throw "Missing Configuration values for events for Type: " + childTypeName;&#13;
+&#13;
+            }&#13;
+&#13;
+            //######### prepare context #################&#13;
+            var evars = { "extra_vars": {} };&#13;
+            extra_vars = JSON.stringify(evars);&#13;
+            //Get Endpoint and ID from input&#13;
+            var split = id.split("|#|");&#13;
+            if (split.length &gt; 1) {&#13;
+                endpointName = split[1];&#13;
+            }&#13;
+            uniqueId = split[0];&#13;
+            System.debug(uniqueId);&#13;
+            System.debug(endpointName);&#13;
+&#13;
+            //######### launch job #################&#13;
+            var _mapping = JSON.parse(outputMapping);&#13;
+            var _task = _mapping[0].taskName;&#13;
+            var _outputVar = _mapping[0].outputVarName;&#13;
+            responseJSON = System.getModule("com.vmware.pso.types.ansible").launchAWXJob_v2(endpointName,&#13;
+                extra_vars, templateId, namespace, childTypeName, _task, _outputVar);&#13;
+&#13;
+&#13;
+            //######### parse &amp; assign  #################&#13;
+            //======================= begin parse script ============================&#13;
+            var allResults = [];&#13;
+            var outputObjs = [];&#13;
+            var regexp = null;&#13;
+            var regexResult = null;&#13;
+            System.debug("Iterating Mappings and Parsing Ansible output...");&#13;
+            var mapping = JSON.parse(outputMapping);&#13;
+&#13;
+&#13;
+            var responseContent = JSON.stringify(responseJSON);&#13;
+            System.debug(responseContent);&#13;
+&#13;
+            mapping.forEach(function (map) {&#13;
+                &#13;
+                regexResult = [];&#13;
+&#13;
+                System.debug("Mapping property: " + map.typeReference);&#13;
+&#13;
+                if (map.parseType &amp;&amp; map.parseType == "JSON") {&#13;
+                    System.debug("Parsing using JSON objects...");&#13;
+                    if (map.arrayJSONPath &amp;&amp; map.arrayJSONPath.length &gt; 0 &amp;&amp; Array.isArray(eval("responseJSON." + map.arrayJSONPath))) {&#13;
+                        var arr = eval("responseJSON." + map.arrayJSONPath);&#13;
+                        arr.forEach(function (objJSON) {&#13;
+                            var obj = {};&#13;
+                            obj[map.typeReference] = eval("objJSON." + map.propertyJSONPath);&#13;
+                            regexResult.push(obj);&#13;
+                        });&#13;
+                    } else {&#13;
+                        var obj = {};&#13;
+                        obj[map.typeReference] = eval("responseJSON." + map.propertyJSONPath);&#13;
+                        regexResult.push(obj);&#13;
+                    }&#13;
+                }&#13;
+                else {&#13;
+                    regexp = new RegExp(map.regExp, map.regExpFlag);&#13;
+                    System.debug("Parsing using RegExp...");&#13;
+                    System.debug("RegExp: " + regexp.source + " | Flags: " + map.regExpFlag);&#13;
+                    &#13;
+                    var ar;&#13;
+                    while (ar = regexp.exec(responseContent)) {&#13;
+                        //build an object by using the map name and the FIRST regex captured group:&#13;
+                        var obj = {};&#13;
+                        obj[map.typeReference] = ar.length &gt; 0 ? ar[1] : null;&#13;
+                        regexResult.push(obj);&#13;
+                    };&#13;
+                }&#13;
+                allResults.push(regexResult);&#13;
+&#13;
+            });&#13;
+&#13;
+            var mappedResults = [];&#13;
+            var columnIndex = 0;&#13;
+&#13;
+            if (allResults.length &gt; 0) {&#13;
+                allResults[0].forEach(function (results) {&#13;
+                    var rowIndex = 0;&#13;
+                    var newObj = {};&#13;
+                    while (rowIndex &lt; allResults.length &amp;&amp; columnIndex &lt; allResults[rowIndex].length) {&#13;
+                        var obj = allResults[rowIndex][columnIndex];&#13;
+                        newObj[Object.keys(obj)[0]] = obj[Object.keys(obj)[0]];&#13;
+                        rowIndex++;&#13;
+                    }&#13;
+                    columnIndex++;&#13;
+                    mappedResults.push(newObj);&#13;
+                });&#13;
+            }&#13;
+&#13;
+            System.debug(JSON.stringify(mappedResults));&#13;
+&#13;
+            mappedResults.forEach(function (output) {&#13;
+                var obj = DynamicTypesManager.makeObject(namespace, childTypeName, "1", childTypeName, []);&#13;
+                if (obj != null) {&#13;
+                    System.debug("Instantiated new " + childTypeName);&#13;
+                    for (var i = 0; i &lt; Object.keys(output).length; i++) {&#13;
+                        if (Object.keys(output)[i].toLowerCase() == "id")&#13;
+                            obj.id = output[Object.keys(output)[i]] + "|#|" + endpointName;&#13;
+                        else if (Object.keys(output)[i].toLowerCase() == "name")&#13;
+                            obj.name = output[Object.keys(output)[i]];&#13;
+                        else&#13;
+                            obj.setProperty(Object.keys(output)[i], output[Object.keys(output)[i]]);&#13;
+                    }&#13;
+                    outputObjs.push(obj);&#13;
+                } else System.error("Instantiation of type [" + namespace + "." + childTypeName + "] returned null!");&#13;
+            });&#13;
+&#13;
+            result = outputObjs;&#13;
+&#13;
+            //======================= end parse script ============================&#13;
+&#13;
+        }&#13;
+    }&#13;
+});&#13;
+System.debug(JSON.stringify(result));&#13;
+&#13;
+&#13;
+</script>
+        <in-binding>
+            <bind name="parentType" type="string" export-name="parentType"/>
+            <bind name="parentId" type="string" export-name="parentId"/>
+            <bind name="relationName" type="string" export-name="relationName"/>
+        </in-binding>
+        <out-binding>
+            <bind name="resut" type="Array/Any" export-name="resut"/>
+        </out-binding>
+        <description>Simple task with custom script capability.</description>
+        <position y="60.0" x="160.0"/>
+    </workflow-item>
+    <presentation/>
+</ns2:workflow>

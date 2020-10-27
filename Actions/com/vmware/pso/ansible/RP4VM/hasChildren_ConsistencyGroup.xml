@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<dunes-script-module name="hasChildren_ConsistencyGroup" result-type="boolean" api-version="6.0.0" id="84322333-f78b-452a-887b-8633f01199c5" version="0.0.1" category-name="com.vmware.pso.ansible.RP4VM">
+  <param n="parentType" t="string"><![CDATA[parent type]]></param>
+  <param n="parentId" t="string"><![CDATA[parent id]]></param>
+  <param n="relationName" t="string"><![CDATA[name of relation]]></param>
+  <script encoded="false"><![CDATA[return false;]]></script>
+</dunes-script-module>
